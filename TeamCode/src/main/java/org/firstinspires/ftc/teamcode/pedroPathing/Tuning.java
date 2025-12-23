@@ -72,6 +72,7 @@ public class Tuning extends SelectableOpMode {
             s.folder("Tests", p -> {
                 p.add("Line", Line::new);
                 p.add("Triangle", Triangle::new);
+                p.add("Square", Square::new);
                 p.add("Circle", Circle::new);
             });
         });
@@ -1355,5 +1356,67 @@ class Drawing {
      */
     public static void sendPacket() {
         panelsField.update();
+    }
+}
+
+/**
+ * This is copy of the Triangle autonomous OpMode.
+ * It runs the robot in a triangle, with the starting point being the bottom-middle point.
+ *
+ * @author Baron Henderson - 20077 The Indubitables
+ * @author Samarth Mahapatra - 1002 CircuitRunners Robotics Surge
+ * @version 1.0, 12/30/2024
+ */
+class Square extends OpMode {
+
+    private final Pose startPose = new Pose(72, 72, Math.toRadians(0));
+    private final Pose interPose = new Pose(24 + 72, -24 + 72, Math.toRadians(90));
+    private final Pose endPose = new Pose(24 + 72, 24 + 72, Math.toRadians(45));
+
+    private PathChain square;
+
+    /**
+     * This runs the OpMode, updating the Follower as well as printing out the debug statements to
+     * the Telemetry, as well as the Panels.
+     */
+    @Override
+    public void loop() {
+        follower.update();
+        draw();
+
+        if (follower.atParametricEnd()) {
+            follower.followPath(square, true);
+        }
+    }
+
+    @Override
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
+
+    @Override
+    public void init_loop() {
+        telemetryM.debug("This will run in a roughly triangular shape, starting on the bottom-middle point.");
+        telemetryM.debug("So, make sure you have enough space to the left, front, and right to run the OpMode.");
+        telemetryM.update(telemetry);
+        follower.update();
+        drawOnlyCurrent();
+    }
+
+    /** Creates the PathChain for the "square".*/
+    @Override
+    public void start() {
+        follower.setStartingPose(startPose);
+
+        square = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, interPose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), interPose.getHeading())
+                .addPath(new BezierLine(interPose, endPose))
+                .setLinearHeadingInterpolation(interPose.getHeading(), endPose.getHeading())
+                .addPath(new BezierLine(endPose, startPose))
+                .setLinearHeadingInterpolation(endPose.getHeading(), startPose.getHeading())
+                .build();
+
+        follower.followPath(square);
     }
 }

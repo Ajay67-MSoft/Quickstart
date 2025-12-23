@@ -106,12 +106,12 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    packagingOptions {
-        pickFirst '**/*.so'
-    }
     ndkVersion '21.3.6528147'
 }
 
 repositories {
 }
+
+//implementation 'org.firstinspires.ftc:ftc-config:7.0'
+//compile implementation 'org.firstinspires.ftc:ftc-config:7.0'
 
