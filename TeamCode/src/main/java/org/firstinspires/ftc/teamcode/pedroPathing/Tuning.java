@@ -1416,7 +1416,7 @@ class Square extends OpMode {
         follower.setStartingPose(startPose);
 
         square = follower.pathBuilder()
-                .addPath(new BezierLine(interPose1, interPose2))
+                .addPath(new BezierLine(startPose, interPose1))
                 .setLinearHeadingInterpolation(interPose1.getHeading(), interPose2.getHeading())
                 .addPath(new BezierLine(interPose2, interPose3))
                 .setLinearHeadingInterpolation(interPose2.getHeading(), interPose3.getHeading())
