@@ -1367,11 +1367,18 @@ class Drawing {
  * @author Samarth Mahapatra - 1002 CircuitRunners Robotics Surge
  * @version 1.0, 12/30/2024
  */
+
 class Square extends OpMode {
 
     private final Pose startPose = new Pose(72, 72, Math.toRadians(0));
-    private final Pose interPose = new Pose(24 + 72, -24 + 72, Math.toRadians(90));
-    private final Pose endPose = new Pose(24 + 72, 24 + 72, Math.toRadians(45));
+
+    private final Pose interPose1 = new Pose(72, 24 + 72, Math.toRadians(90));
+    private final Pose interPose2 = new Pose(-24 + 72, 24 + 72, Math.toRadians(180));
+    private final Pose interPose3 = new Pose( -24+72,  72, Math.toRadians(270));
+    private final Pose interPose4 = new Pose(72, 72, Math.toRadians(0));
+
+    private final Pose endPose = new Pose(72, 72, Math.toRadians(0));
+    //private final Pose endPose =
 
     private PathChain square;
 
@@ -1409,14 +1416,25 @@ class Square extends OpMode {
         follower.setStartingPose(startPose);
 
         square = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, interPose))
-                .setLinearHeadingInterpolation(startPose.getHeading(), interPose.getHeading())
-                .addPath(new BezierLine(interPose, endPose))
-                .setLinearHeadingInterpolation(interPose.getHeading(), endPose.getHeading())
-                .addPath(new BezierLine(endPose, startPose))
-                .setLinearHeadingInterpolation(endPose.getHeading(), startPose.getHeading())
+                .addPath(new BezierLine(interPose1, interPose2))
+                .setLinearHeadingInterpolation(interPose1.getHeading(), interPose2.getHeading())
+                .addPath(new BezierLine(interPose2, interPose3))
+                .setLinearHeadingInterpolation(interPose2.getHeading(), interPose3.getHeading())
+
+
+/*
+                .setLinearHeadingInterpolation(interPose3.getHeading(), interPose4.getHeading())
+                .addPath(new BezierLine(interPose3, interPose4))
+                .setLinearHeadingInterpolation(interPose4.getHeading(), interPose1.getHeading())
+                .addPath(new BezierLine(interPose4, interPose1))
+*/
+//                .addPath(new BezierLine(endPose, startPose))
+//                .setLinearHeadingInterpolation(endPose.getHeading(), startPose.getHeading())
                 .build();
 
         follower.followPath(square);
     }
 }
+
+
+
