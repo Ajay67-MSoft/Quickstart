@@ -1102,7 +1102,7 @@ class CentripetalTuner extends OpMode {
  */
 class Triangle extends OpMode {
 
-    private final Pose startPose = new Pose(72, 72, Math.toRadians(0));
+    private final Pose startPose = new Pose(72, 72, Math.toRadians(90));
     private final Pose interPose = new Pose(24 + 72, -24 + 72, Math.toRadians(90));
     private final Pose endPose = new Pose(24 + 72, 24 + 72, Math.toRadians(45));
 
@@ -1368,16 +1368,14 @@ class Drawing {
  * @version 1.0, 12/30/2024
  */
 
-class Square extends OpMode {
+class Square extends OpMode { // ------------------ SQUARE CODE STARTS HERE --------------------
 
-    private final Pose startPose = new Pose(72, 72, Math.toRadians(0));
+    private final Pose startPose = new Pose(72, 72, Math.toRadians(0)); // add x OR start
 
-    private final Pose interPose1 = new Pose(72, 24 + 72, Math.toRadians(90));
-    private final Pose interPose2 = new Pose(-24 + 72, 24 + 72, Math.toRadians(180));
-    private final Pose interPose3 = new Pose( -24+72,  72, Math.toRadians(270));
-    private final Pose interPose4 = new Pose(72, 72, Math.toRadians(0));
-
-    private final Pose endPose = new Pose(72, 72, Math.toRadians(0));
+    private final Pose interPose1 = new Pose(72, 24 + 72, Math.toRadians(90)); // add y
+    private final Pose interPose2 = new Pose(-24 + 72, 24 + 72, Math.toRadians(180)); // subtract x
+    private final Pose endPose = new Pose( -24 + 72,  72, Math.toRadians(270)); // subtract y
+//    private final Pose endPose = new Pose(72, 72, Math.toRadians(0)); //
     //private final Pose endPose =
 
     private PathChain square;
@@ -1412,15 +1410,29 @@ class Square extends OpMode {
 
     /** Creates the PathChain for the "square".*/
     @Override
-    public void start() {
+    public void start() { // ---------------- DOUBLE ---------------------
         follower.setStartingPose(startPose);
+/*
+triangle = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, interPose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), interPose.getHeading())
+                .addPath(new BezierLine(interPose, endPose))
+                .setLinearHeadingInterpolation(interPose.getHeading(), endPose.getHeading())
+                .addPath(new BezierLine(endPose, startPose))
+                .setLinearHeadingInterpolation(endPose.getHeading(), startPose.getHeading())
+                .build();
 
+        follower.followPath(triangle);
+ */
         square = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, interPose1))
+                .setLinearHeadingInterpolation(startPose.getHeading(), interPose1.getHeading())
+                .addPath(new BezierLine(interPose1, interPose2))
                 .setLinearHeadingInterpolation(interPose1.getHeading(), interPose2.getHeading())
-                .addPath(new BezierLine(interPose2, interPose3))
-                .setLinearHeadingInterpolation(interPose2.getHeading(), interPose3.getHeading())
-
+                .addPath(new BezierLine(interPose2, endPose))
+                .setLinearHeadingInterpolation(interPose2.getHeading(), endPose.getHeading())
+                .addPath(new BezierLine(endPose, startPose))
+                .setLinearHeadingInterpolation(endPose.getHeading(), startPose.getHeading())
 
 /*
                 .setLinearHeadingInterpolation(interPose3.getHeading(), interPose4.getHeading())
