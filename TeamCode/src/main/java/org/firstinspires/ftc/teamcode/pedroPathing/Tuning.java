@@ -1370,11 +1370,15 @@ class Drawing {
 
 class Square extends OpMode { // ------------------ SQUARE CODE STARTS HERE --------------------
 
-    private final Pose startPose = new Pose(72, 72, Math.toRadians(0)); // add x OR start
+    private final Pose startPose = new Pose(72, 72, Math.toRadians(0));
+    private final Pose startPoseTurn = new Pose(72, 72, Math.toRadians(90));
 
     private final Pose interPose1 = new Pose(72, 24 + 72, Math.toRadians(90)); // add y
+    private final Pose interPose1Turn = new Pose(72, 24 + 72, Math.toRadians(180));
     private final Pose interPose2 = new Pose(-24 + 72, 24 + 72, Math.toRadians(180)); // subtract x
+    private final Pose interPose2Turn = new Pose(-24 + 72, 24 + 72, Math.toRadians(270));
     private final Pose endPose = new Pose( -24 + 72,  72, Math.toRadians(270)); // subtract y
+    private final Pose endPoseTurn = new Pose(-24 + 72, 72, Math.toRadians((0)));
 //    private final Pose endPose = new Pose(72, 72, Math.toRadians(0)); //
     //private final Pose endPose =
 
@@ -1425,14 +1429,14 @@ triangle = follower.pathBuilder()
         follower.followPath(triangle);
  */
         square = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, interPose1))
-                .setLinearHeadingInterpolation(startPose.getHeading(), interPose1.getHeading())
-                .addPath(new BezierLine(interPose1, interPose2))
-                .setLinearHeadingInterpolation(interPose1.getHeading(), interPose2.getHeading())
-                .addPath(new BezierLine(interPose2, endPose))
-                .setLinearHeadingInterpolation(interPose2.getHeading(), endPose.getHeading())
-                .addPath(new BezierLine(endPose, startPose))
-                .setLinearHeadingInterpolation(endPose.getHeading(), startPose.getHeading())
+
+                .addPath(new BezierLine(startPose, startPoseTurn))
+                .setLinearHeadingInterpolation(startPose.getHeading(), startPoseTurn.getHeading())
+                .addPath(new BezierLine(startPoseTurn, interPose1))
+                .setLinearHeadingInterpolation(startPoseTurn.getHeading(), interPose1.getHeading())
+
+
+
 
 /*
                 .setLinearHeadingInterpolation(interPose3.getHeading(), interPose4.getHeading())
