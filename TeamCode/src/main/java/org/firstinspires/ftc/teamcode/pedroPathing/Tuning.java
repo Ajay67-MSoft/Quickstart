@@ -15,7 +15,6 @@ import com.bylazar.field.PanelsField;
 import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
-import com.pedropathing.ErrorCalculator;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.*;
 import com.pedropathing.math.*;
@@ -1150,7 +1149,7 @@ class Triangle extends OpMode {
                 .setLinearHeadingInterpolation(endPose.getHeading(), startPose.getHeading())
                 .build();
 
-        follower.followPath(triangle);
+    follower.followPath(triangle);
     }
 }
 
@@ -1247,7 +1246,7 @@ class Drawing {
         if (follower.getCurrentPath() != null) {
             drawPath(follower.getCurrentPath(), robotLook);
             Pose closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());
-            drawRobot(new Pose(closestPoint.getX(), closestPoint.getY(), follower.getCurrentPath().getHeadingGoal(follower.getCurrentPath().getClosestPointTValue())), robotLook);
+            drawRobot(new Pose(closestPoint.getX(), closestPoint.getY(), follower.getCurrentPath().getHeadingGoal(follower.getCurrentTValue())), robotLook);
         }
         drawPoseHistory(follower.getPoseHistory(), historyLook);
         drawRobot(follower.getPose(), historyLook);
@@ -1358,83 +1357,301 @@ class Drawing {
         panelsField.update();
     }
 }
-
-/**
- * This is copy of the Triangle autonomous OpMode.
- * It runs the robot in a triangle, with the starting point being the bottom-middle point.
- *
- * @author Baron Henderson - 20077 The Indubitables
- * @author Samarth Mahapatra - 1002 CircuitRunners Robotics Surge
- * @version 1.0, 12/30/2024
- */
-
+;
 class Square extends OpMode {
+    private Follower follower;
+    private Timer timer;
+    private int pathState;
 
-    private final Pose startPose = new Pose(72, 72, Math.toRadians(0));
+    // Parameters at the beginning - adjust these as needed
+    private double sideLength = 24.0; // Size of the square sides in inches
+    private Pose startPose = new Pose(72.0, 72.0, 0.0); // Starting position (x, y, heading in radians)
+    private double pauseTime = 0.5; // Pause duration in seconds after each action (linear motion or turn)
+    private double turnRadius = 0.01; // Radius for curved turns (inches) - adjust for smoother rotations
 
-    private final Pose interPose1 = new Pose(72, 24 + 72, Math.toRadians(90));
-    private final Pose interPose2 = new Pose(-24 + 72, 24 + 72, Math.toRadians(180));
-    private final Pose interPose3 = new Pose( -24+72,  72, Math.toRadians(270));
-    private final Pose interPose4 = new Pose(72, 72, Math.toRadians(0));
+    // Path chains
+    private PathChain side1, turn1, side2, turn2, side3, turn3, side4, turn4;
 
-    private final Pose endPose = new Pose(72, 72, Math.toRadians(0));
-    //private final Pose endPose =
+    // Computed poses
+    private Pose side1Start, side1End, turn1End, side2Start, side2End, turn2End;
+    private Pose side3Start, side3End, turn3End, side4Start, side4End, turn4End;
 
-    private PathChain square;
+    public void buildPaths() {
+        // Compute poses dynamically based on parameters
 
-    /**
-     * This runs the OpMode, updating the Follower as well as printing out the debug statements to
-     * the Telemetry, as well as the Panels.
-     */
+        // Side 1
+        side1Start = startPose;
+        side1End = new Pose(
+                side1Start.getX() + sideLength * Math.cos(side1Start.getHeading()),
+                side1Start.getY() + sideLength * Math.sin(side1Start.getHeading()),
+                side1Start.getHeading()
+        );
+        side1 = follower.pathBuilder()
+                .addPath(new Path(new BezierLine(side1Start, side1End)))
+                .setConstantHeadingInterpolation(side1Start.getHeading())
+                .build();
+
+        // Turn 1 (90 degrees left as a curved arc)
+        double turn1Heading = side1Start.getHeading() + Math.PI;
+        // Control point for 90° arc
+        Pose control1 = new Pose(
+                side1End.getX() + turnRadius * Math.cos(side1End.getHeading() + Math.PI / 4),
+                side1End.getY() + turnRadius * Math.sin(side1End.getHeading() + Math.PI / 4),
+                turn1Heading
+        );
+        turn1End = new Pose(
+                side1End.getX() + turnRadius * (Math.cos(side1End.getHeading()) + Math.cos(turn1Heading)),
+                side1End.getY() + turnRadius * (Math.sin(side1End.getHeading()) + Math.sin(turn1Heading)),
+                turn1Heading
+        );
+        turn1 = follower.pathBuilder()
+                .addPath(new Path(new BezierCurve(side1End, control1, turn1End)))
+                .setLinearHeadingInterpolation(side1End.getHeading(), turn1Heading)
+                .build();
+
+        // Side 2
+        side2Start = turn1End;  // Start from end of curve
+        side2End = new Pose(
+                side2Start.getX() + sideLength * Math.cos(turn1Heading),
+                side2Start.getY() + sideLength * Math.sin(turn1Heading),
+                turn1Heading
+        );
+        side2 = follower.pathBuilder()
+                .addPath(new Path(new BezierLine(side2Start, side2End)))
+                .setConstantHeadingInterpolation(turn1Heading)
+                .build();
+
+        // Turn 2 (90 degrees left as a curved arc)
+        double turn2Heading = turn1Heading + Math.PI / 2;
+        Pose control2 = new Pose(
+                side2End.getX() + turnRadius * Math.cos(side2End.getHeading() + Math.PI / 4),
+                side2End.getY() + turnRadius * Math.sin(side2End.getHeading() + Math.PI / 4),
+                turn2Heading
+        );
+        turn2End = new Pose(
+                side2End.getX() + turnRadius * (Math.cos(side2End.getHeading()) + Math.cos(turn2Heading)),
+                side2End.getY() + turnRadius * (Math.sin(side2End.getHeading()) + Math.sin(turn2Heading)),
+                turn2Heading
+        );
+        turn2 = follower.pathBuilder()
+                .addPath(new Path(new BezierCurve(side2End, control2, turn2End)))
+                .setLinearHeadingInterpolation(side2End.getHeading(), turn2Heading)
+                .build();
+
+        // Side 3
+        side3Start = turn2End;
+        side3End = new Pose(
+                side3Start.getX() + sideLength * Math.cos(turn2Heading),
+                side3Start.getY() + sideLength * Math.sin(turn2Heading),
+                turn2Heading
+        );
+        side3 = follower.pathBuilder()
+                .addPath(new Path(new BezierLine(side3Start, side3End)))
+                .setConstantHeadingInterpolation(turn2Heading)
+                .build();
+
+        // Turn 3 (90 degrees left as a curved arc)
+        double turn3Heading = turn2Heading + Math.PI / 2;
+        Pose control3 = new Pose(
+                side3End.getX() + turnRadius * Math.cos(side3End.getHeading() + Math.PI / 4),
+                side3End.getY() + turnRadius * Math.sin(side3End.getHeading() + Math.PI / 4),
+                turn3Heading
+        );
+        turn3End = new Pose(
+                side3End.getX() + turnRadius * (Math.cos(side3End.getHeading()) + Math.cos(turn3Heading)),
+                side3End.getY() + turnRadius * (Math.sin(side3End.getHeading()) + Math.sin(turn3Heading)),
+                turn3Heading
+        );
+        turn3 = follower.pathBuilder()
+                .addPath(new Path(new BezierCurve(side3End, control3, turn3End)))
+                .setLinearHeadingInterpolation(side3End.getHeading(), turn3Heading)
+                .build();
+
+        // Side 4
+        side4Start = turn3End;
+        side4End = new Pose(
+                side4Start.getX() + sideLength * Math.cos(turn3Heading),
+                side4Start.getY() + sideLength * Math.sin(turn3Heading),
+                turn3Heading
+        );
+        side4 = follower.pathBuilder()
+                .addPath(new Path(new BezierLine(side4Start, side4End)))
+                .setConstantHeadingInterpolation(turn3Heading)
+                .build();
+
+        // Turn 4 (90 degrees left as a curved arc, back to start)
+        double turn4Heading = turn3Heading + Math.PI / 2;
+        Pose control4 = new Pose(
+                side4End.getX() + turnRadius * Math.cos(side4End.getHeading() + Math.PI / 4),
+                side4End.getY() + turnRadius * Math.sin(side4End.getHeading() + Math.PI / 4),
+                turn4Heading
+        );
+        turn4End = new Pose(
+                side4End.getX() + turnRadius * (Math.cos(side4End.getHeading()) + Math.cos(turn4Heading)),
+                side4End.getY() + turnRadius * (Math.sin(side4End.getHeading()) + Math.sin(turn4Heading)),
+                turn4Heading
+        );
+        turn4 = follower.pathBuilder()
+                .addPath(new Path(new BezierCurve(side4End, control4, turn4End)))
+                .setLinearHeadingInterpolation(side4End.getHeading(), turn4Heading)
+                .build();
+    }
+
+    public void autonomousPathUpdate() {
+        switch (pathState) {
+            case 0:
+                follower.followPath(side1);
+                setPathState(1);
+                break;
+            case 1:
+                if (!follower.isBusy()) {
+                    timer.resetTimer();
+                    setPathState(2); // Pause after side1
+                }
+                break;
+            case 2:
+                if (timer.getElapsedTimeSeconds() > pauseTime) {
+                    follower.followPath(turn1);
+                    setPathState(3);
+                }
+                break;
+            case 3:
+                if (!follower.isBusy()) {
+                    timer.resetTimer();
+                    setPathState(4); // Pause after turn1
+                }
+                break;
+            case 4:
+                if (timer.getElapsedTimeSeconds() > pauseTime) {
+                    follower.setPose(side2Start);
+                    setPathState(5);
+                }
+                break;
+            case 5:
+                follower.followPath(side2);
+                setPathState(6);
+                break;
+            case 6:
+                if (!follower.isBusy()) {
+                    timer.resetTimer();
+                    setPathState(7); // Pause after side2
+                }
+                break;
+            case 7:
+                if (timer.getElapsedTimeSeconds() > pauseTime) {
+                    follower.followPath(turn2);
+                    setPathState(8);
+                }
+                break;
+            case 8:
+                if (!follower.isBusy()) {
+                    timer.resetTimer();
+                    setPathState(9); // Pause after turn2
+                }
+                break;
+            case 9:
+                if (timer.getElapsedTimeSeconds() > pauseTime) {
+                    follower.setPose(side3Start);
+                    setPathState(10);
+                }
+                break;
+            case 10:
+                follower.followPath(side3);
+                setPathState(11);
+                break;
+            case 11:
+                if (!follower.isBusy()) {
+                    timer.resetTimer();
+                    setPathState(12); // Pause after side3
+                }
+                break;
+            case 12:
+                if (timer.getElapsedTimeSeconds() > pauseTime) {
+                    follower.followPath(turn3);
+                    setPathState(13);
+                }
+                break;
+            case 13:
+                if (!follower.isBusy()) {
+                    timer.resetTimer();
+                    setPathState(14); // Pause after turn3
+                }
+                break;
+            case 14:
+                if (timer.getElapsedTimeSeconds() > pauseTime) {
+                    follower.setPose(side4Start);
+                    setPathState(15);
+                }
+                break;
+            case 15:
+                follower.followPath(side4);
+                setPathState(16);
+                break;
+            case 16:
+                if (!follower.isBusy()) {
+                    timer.resetTimer();
+                    setPathState(17); // Pause after side4
+                }
+                break;
+            case 17:
+                if (timer.getElapsedTimeSeconds() > pauseTime) {
+                    follower.followPath(turn4);
+                    setPathState(18);
+                }
+                break;
+            case 18:
+                if (!follower.isBusy()) {
+                    timer.resetTimer();
+                    setPathState(19); // Pause after turn4
+                }
+                break;
+            case 19:
+                if (timer.getElapsedTimeSeconds() > pauseTime) {
+                    // Normalize heading to original (modulo 2pi if needed, but PedroPathing handles it)
+                    follower.setPose(new Pose(turn4End.getX(), turn4End.getY(), startPose.getHeading()));
+                    setPathState(0); // Loop back
+                }
+                break;
+        }
+    }
+
+    public void setPathState(int pState) {
+        pathState = pState;
+    }
+
     @Override
     public void loop() {
         follower.update();
-        draw();
-
-        if (follower.atParametricEnd()) {
-            follower.followPath(square, true);
+        autonomousPathUpdate();
+        telemetry.addData("path state", pathState);
+        telemetry.addData("x", follower.getPose().getX());
+        telemetry.addData("y", follower.getPose().getY());
+        telemetry.addData("heading (degrees)", Math.toDegrees(follower.getPose().getHeading()));
+        telemetry.addData("isBusy", follower.isBusy());
+        if (follower.getCurrentPath() != null) {
+            telemetry.addData("pathProgress", follower.getCurrentPath());
+        } else {    telemetry.addData("pathProgress", "No Path");
         }
+        telemetry.update();
     }
 
     @Override
     public void init() {
-        follower.setStartingPose(new Pose(72, 72));
+        timer = new Timer();
+        follower = Constants.createFollower(hardwareMap);
+        buildPaths();
+        follower.setStartingPose(startPose);
     }
 
     @Override
-    public void init_loop() {
-        telemetryM.debug("This will run in a roughly triangular shape, starting on the bottom-middle point.");
-        telemetryM.debug("So, make sure you have enough space to the left, front, and right to run the OpMode.");
-        telemetryM.update(telemetry);
-        follower.update();
-        drawOnlyCurrent();
-    }
+    public void init_loop() {}
 
-    /** Creates the PathChain for the "square".*/
     @Override
     public void start() {
-        follower.setStartingPose(startPose);
-
-        square = follower.pathBuilder()
-                .addPath(new BezierLine(interPose1, interPose2))
-                .setLinearHeadingInterpolation(interPose1.getHeading(), interPose2.getHeading())
-                .addPath(new BezierLine(interPose2, interPose3))
-                .setLinearHeadingInterpolation(interPose2.getHeading(), interPose3.getHeading())
-
-
-/*
-                .setLinearHeadingInterpolation(interPose3.getHeading(), interPose4.getHeading())
-                .addPath(new BezierLine(interPose3, interPose4))
-                .setLinearHeadingInterpolation(interPose4.getHeading(), interPose1.getHeading())
-                .addPath(new BezierLine(interPose4, interPose1))
-*/
-//                .addPath(new BezierLine(endPose, startPose))
-//                .setLinearHeadingInterpolation(endPose.getHeading(), startPose.getHeading())
-                .build();
-
-        follower.followPath(square);
+        timer.resetTimer();
+        setPathState(0);
     }
+
+    @Override
+    public void stop() {}
 }
-
-
-
