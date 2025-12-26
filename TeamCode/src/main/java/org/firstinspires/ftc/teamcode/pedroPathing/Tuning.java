@@ -1365,9 +1365,9 @@ class Square extends OpMode {
 
     // Parameters at the beginning - adjust these as needed
     private double sideLength = 24.0; // Size of the square sides in inches
-    private Pose startPose = new Pose(72.0, 72.0, 0.0); // Starting position (x, y, heading in radians)
+    private Pose startPose = new Pose(72, 72, 0.0); // Starting position (x, y, heading in radians)
     private double pauseTime = 0.5; // Pause duration in seconds after each action (linear motion or turn)
-    private double turnRadius = 0.01; // Radius for curved turns (inches) - adjust for smoother rotations
+    private double turnOffset = 0.01; // Small offset for turns to enable heading interpolation
 
     // Path chains
     private PathChain side1, turn1, side2, turn2, side3, turn3, side4, turn4;
@@ -1391,26 +1391,20 @@ class Square extends OpMode {
                 .setConstantHeadingInterpolation(side1Start.getHeading())
                 .build();
 
-        // Turn 1 (90 degrees left as a curved arc)
-        double turn1Heading = side1Start.getHeading() + Math.PI;
-        // Control point for 90° arc
-        Pose control1 = new Pose(
-                side1End.getX() + turnRadius * Math.cos(side1End.getHeading() + Math.PI / 4),
-                side1End.getY() + turnRadius * Math.sin(side1End.getHeading() + Math.PI / 4),
-                turn1Heading
-        );
+        // Turn 1 (90 degrees left)
+        double turn1Heading = side1Start.getHeading() + Math.PI / 2;
         turn1End = new Pose(
-                side1End.getX() + turnRadius * (Math.cos(side1End.getHeading()) + Math.cos(turn1Heading)),
-                side1End.getY() + turnRadius * (Math.sin(side1End.getHeading()) + Math.sin(turn1Heading)),
+                side1End.getX() + turnOffset * Math.cos(turn1Heading),
+                side1End.getY() + turnOffset * Math.sin(turn1Heading),
                 turn1Heading
         );
         turn1 = follower.pathBuilder()
-                .addPath(new Path(new BezierCurve(side1End, control1, turn1End)))
+                .addPath(new Path(new BezierLine(side1End, turn1End)))
                 .setLinearHeadingInterpolation(side1End.getHeading(), turn1Heading)
                 .build();
 
         // Side 2
-        side2Start = turn1End;  // Start from end of curve
+        side2Start = new Pose(side1End.getX(), side1End.getY(), turn1Heading);
         side2End = new Pose(
                 side2Start.getX() + sideLength * Math.cos(turn1Heading),
                 side2Start.getY() + sideLength * Math.sin(turn1Heading),
@@ -1421,25 +1415,20 @@ class Square extends OpMode {
                 .setConstantHeadingInterpolation(turn1Heading)
                 .build();
 
-        // Turn 2 (90 degrees left as a curved arc)
+        // Turn 2 (another 90 degrees left)
         double turn2Heading = turn1Heading + Math.PI / 2;
-        Pose control2 = new Pose(
-                side2End.getX() + turnRadius * Math.cos(side2End.getHeading() + Math.PI / 4),
-                side2End.getY() + turnRadius * Math.sin(side2End.getHeading() + Math.PI / 4),
-                turn2Heading
-        );
         turn2End = new Pose(
-                side2End.getX() + turnRadius * (Math.cos(side2End.getHeading()) + Math.cos(turn2Heading)),
-                side2End.getY() + turnRadius * (Math.sin(side2End.getHeading()) + Math.sin(turn2Heading)),
+                side2End.getX() + turnOffset * Math.cos(turn2Heading),
+                side2End.getY() + turnOffset * Math.sin(turn2Heading),
                 turn2Heading
         );
         turn2 = follower.pathBuilder()
-                .addPath(new Path(new BezierCurve(side2End, control2, turn2End)))
+                .addPath(new Path(new BezierLine(side2End, turn2End)))
                 .setLinearHeadingInterpolation(side2End.getHeading(), turn2Heading)
                 .build();
 
         // Side 3
-        side3Start = turn2End;
+        side3Start = new Pose(side2End.getX(), side2End.getY(), turn2Heading);
         side3End = new Pose(
                 side3Start.getX() + sideLength * Math.cos(turn2Heading),
                 side3Start.getY() + sideLength * Math.sin(turn2Heading),
@@ -1450,25 +1439,20 @@ class Square extends OpMode {
                 .setConstantHeadingInterpolation(turn2Heading)
                 .build();
 
-        // Turn 3 (90 degrees left as a curved arc)
+        // Turn 3 (another 90 degrees left)
         double turn3Heading = turn2Heading + Math.PI / 2;
-        Pose control3 = new Pose(
-                side3End.getX() + turnRadius * Math.cos(side3End.getHeading() + Math.PI / 4),
-                side3End.getY() + turnRadius * Math.sin(side3End.getHeading() + Math.PI / 4),
-                turn3Heading
-        );
         turn3End = new Pose(
-                side3End.getX() + turnRadius * (Math.cos(side3End.getHeading()) + Math.cos(turn3Heading)),
-                side3End.getY() + turnRadius * (Math.sin(side3End.getHeading()) + Math.sin(turn3Heading)),
+                side3End.getX() + turnOffset * Math.cos(turn3Heading),
+                side3End.getY() + turnOffset * Math.sin(turn3Heading),
                 turn3Heading
         );
         turn3 = follower.pathBuilder()
-                .addPath(new Path(new BezierCurve(side3End, control3, turn3End)))
+                .addPath(new Path(new BezierLine(side3End, turn3End)))
                 .setLinearHeadingInterpolation(side3End.getHeading(), turn3Heading)
                 .build();
 
         // Side 4
-        side4Start = turn3End;
+        side4Start = new Pose(side3End.getX(), side3End.getY(), turn3Heading);
         side4End = new Pose(
                 side4Start.getX() + sideLength * Math.cos(turn3Heading),
                 side4Start.getY() + sideLength * Math.sin(turn3Heading),
@@ -1479,20 +1463,15 @@ class Square extends OpMode {
                 .setConstantHeadingInterpolation(turn3Heading)
                 .build();
 
-        // Turn 4 (90 degrees left as a curved arc, back to start)
+        // Turn 4 (final 90 degrees left, back to original heading modulo 2pi)
         double turn4Heading = turn3Heading + Math.PI / 2;
-        Pose control4 = new Pose(
-                side4End.getX() + turnRadius * Math.cos(side4End.getHeading() + Math.PI / 4),
-                side4End.getY() + turnRadius * Math.sin(side4End.getHeading() + Math.PI / 4),
-                turn4Heading
-        );
         turn4End = new Pose(
-                side4End.getX() + turnRadius * (Math.cos(side4End.getHeading()) + Math.cos(turn4Heading)),
-                side4End.getY() + turnRadius * (Math.sin(side4End.getHeading()) + Math.sin(turn4Heading)),
+                side4End.getX() + turnOffset * Math.cos(turn4Heading),
+                side4End.getY() + turnOffset * Math.sin(turn4Heading),
                 turn4Heading
         );
         turn4 = follower.pathBuilder()
-                .addPath(new Path(new BezierCurve(side4End, control4, turn4End)))
+                .addPath(new Path(new BezierLine(side4End, turn4End)))
                 .setLinearHeadingInterpolation(side4End.getHeading(), turn4Heading)
                 .build();
     }
@@ -1608,7 +1587,7 @@ class Square extends OpMode {
             case 19:
                 if (timer.getElapsedTimeSeconds() > pauseTime) {
                     // Normalize heading to original (modulo 2pi if needed, but PedroPathing handles it)
-                    follower.setPose(new Pose(turn4End.getX(), turn4End.getY(), startPose.getHeading()));
+                    follower.setPose(new Pose(side4End.getX(), side4End.getY(), startPose.getHeading()));
                     setPathState(0); // Loop back
                 }
                 break;
@@ -1627,11 +1606,6 @@ class Square extends OpMode {
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading (degrees)", Math.toDegrees(follower.getPose().getHeading()));
-        telemetry.addData("isBusy", follower.isBusy());
-        if (follower.getCurrentPath() != null) {
-            telemetry.addData("pathProgress", follower.getCurrentPath());
-        } else {    telemetry.addData("pathProgress", "No Path");
-        }
         telemetry.update();
     }
 
