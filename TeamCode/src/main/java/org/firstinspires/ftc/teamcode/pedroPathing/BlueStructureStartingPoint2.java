@@ -4,167 +4,226 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.pedropathing.util.Timer;
 
-// motor imports (kept)
-
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
 public class BlueStructureStartingPoint2 extends OpMode {
 
-    private Follower follower;
-    private Timer pathTimer, opModeTimer;
+    /* ================= HARDWARE ================= */
 
-    public enum PathState {
-        DRIVE_STARTPOS_SHOOTPOS1,
-        SHOOTPOS_TOCOLLECTPOS,
-        COLLECT_BALL1,
-        COLLECT_BALL2,
-        COLLECT_BALL3,
-        TO_SHOOTPOS,
+    private DcMotor leftFlywheel;
+    private DcMotor rightFlywheel;
+
+    private Servo finalIntakeLeft;
+    private Servo finalIntakeRight;
+
+    /* ================= PEDRO ================= */
+
+    private Follower follower;
+    private Timer stateTimer;
+
+    /* ================= STATES ================= */
+
+    public enum State {
+        DRIVE_TO_SHOOT_1,
+        SHOOT_1,
+        DRIVE_TO_COLLECT,
+        COLLECT_1,
+        COLLECT_2,
+        COLLECT_3,
+        DRIVE_BACK_TO_SHOOT,
         FINISHED
     }
 
-    PathState pathState;
+    private State state;
 
-    private final Pose startPose = new Pose(21.044654939106902, 123.34506089309879, Math.toRadians(144));
-    private final Pose interPose1 = new Pose(64.5, 98, Math.toRadians(142));
-    private final Pose interPose2 = new Pose(40.4, 76, Math.toRadians(180));
-    private final Pose interPose3 = new Pose(34.9, 76, Math.toRadians(180));
-    private final Pose interPose4 = new Pose(30, 76, Math.toRadians(180));
-    private final Pose interPose5 = new Pose(25, 76, Math.toRadians(180));
-    private final Pose interPose6 = new Pose(64.4979702300406, 98.40324763193506, Math.toRadians(142));
+    /* ================= POSES ================= */
 
-    // add missing path declarations
-    private PathChain path1, path2, path3, path4, path5, path6;
+    private final Pose startPose = new Pose(21.04, 123.35, Math.toRadians(144));
+    private final Pose shootPose = new Pose(64.5, 98.0, Math.toRadians(142));
 
-    public void buildPaths() {
-        path1 = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, interPose1))
-                .setLinearHeadingInterpolation(startPose.getHeading(), interPose1.getHeading())
+    private final Pose collect1 = new Pose(40.4, 76, Math.toRadians(180));
+    private final Pose collect2 = new Pose(34.9, 76, Math.toRadians(180));
+    private final Pose collect3 = new Pose(30.0, 76, Math.toRadians(180));
+    private final Pose collect4 = new Pose(25.0, 76, Math.toRadians(180));
+
+    /* ================= PATHS ================= */
+
+    private PathChain pathShoot1;
+    private PathChain pathCollect1;
+    private PathChain pathCollect2;
+    private PathChain pathCollect3;
+    private PathChain pathReturnShoot;
+
+    /* ================= INIT ================= */
+
+    @Override
+    public void init() {
+
+        /* ---- Pedro ---- */
+        follower = Constants.createFollower(hardwareMap);
+        follower.setPose(startPose);
+        follower.setMaxPower(0.70); // ------------ 70% of max power --------------
+
+        /* ---- Timers ---- */
+        stateTimer = new Timer();
+
+        /* ---- Motors ---- */
+        leftFlywheel  = hardwareMap.get(DcMotor.class, "6000 RPM motor");
+        rightFlywheel = hardwareMap.get(DcMotor.class, "6000 RPM motor flywheel right");
+
+        leftFlywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightFlywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        leftFlywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        rightFlywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        /* ---- Servos ---- */
+        finalIntakeLeft  = hardwareMap.get(Servo.class, "FinalIntakeLeftDS");
+        finalIntakeRight = hardwareMap.get(Servo.class, "finalIntakeServo");
+
+        finalIntakeRight.setDirection(Servo.Direction.REVERSE);
+
+        // Default: NOT feeding
+        finalIntakeLeft.setPosition(20.0);
+        finalIntakeRight.setPosition(20.0);
+
+        buildPaths();
+
+        state = State.DRIVE_TO_SHOOT_1;
+        stateTimer.resetTimer();
+    }
+
+    /* ================= PATH BUILDING ================= */
+
+    private void buildPaths() {
+
+        pathShoot1 = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, shootPose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
                 .build();
 
-        path2 = follower.pathBuilder()
-                .addPath(new BezierLine(interPose1, interPose2))
-                .setLinearHeadingInterpolation(interPose1.getHeading(), interPose2.getHeading())
+        pathCollect1 = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, collect1))
+                .setLinearHeadingInterpolation(shootPose.getHeading(), collect1.getHeading())
                 .build();
 
-        path3 = follower.pathBuilder()
-                .addPath(new BezierLine(interPose2, interPose3))
-                .setLinearHeadingInterpolation(interPose2.getHeading(), interPose3.getHeading())
+        pathCollect2 = follower.pathBuilder()
+                .addPath(new BezierLine(collect1, collect2))
+                .setLinearHeadingInterpolation(collect1.getHeading(), collect2.getHeading())
                 .build();
 
-        path4 = follower.pathBuilder()
-                .addPath(new BezierLine(interPose3, interPose4))
-                .setLinearHeadingInterpolation(interPose3.getHeading(), interPose4.getHeading())
+        pathCollect3 = follower.pathBuilder()
+                .addPath(new BezierLine(collect2, collect3))
+                .setLinearHeadingInterpolation(collect2.getHeading(), collect3.getHeading())
                 .build();
 
-        path5 = follower.pathBuilder()
-                .addPath(new BezierLine(interPose4, interPose5))
-                .setLinearHeadingInterpolation(interPose4.getHeading(), interPose5.getHeading())
-                .build();
-        path6 = follower.pathBuilder()
-                .addPath(new BezierLine(interPose5, interPose6))
-                .setLinearHeadingInterpolation(interPose5.getHeading(), interPose6.getHeading())
+        pathReturnShoot = follower.pathBuilder()
+                .addPath(new BezierLine(collect4, shootPose))
+                .setLinearHeadingInterpolation(collect4.getHeading(), shootPose.getHeading())
                 .build();
     }
 
-    public void statePathUpdate() {
-        switch (pathState) {
-            case DRIVE_STARTPOS_SHOOTPOS1:
-                follower.followPath(path1, true);
-                setPathState(PathState.SHOOTPOS_TOCOLLECTPOS);
-                break;
-            case SHOOTPOS_TOCOLLECTPOS:
-                follower.followPath(path2, true);
-                setPathState(PathState.COLLECT_BALL1);
+    /* ================= LOOP ================= */
+
+    @Override
+    public void loop() {
+
+        follower.update();
+        updateStateMachine();
+
+        telemetry.addData("State", state);
+        telemetry.addData("Timer", stateTimer.getElapsedTimeSeconds());
+        telemetry.addData("X", follower.getPose().getX());
+        telemetry.addData("Y", follower.getPose().getY());
+        telemetry.update();
+    }
+
+    /* ================= STATE MACHINE ================= */
+
+    private void updateStateMachine() {
+
+        switch (state) {
+
+            case DRIVE_TO_SHOOT_1:
+                follower.followPath(pathShoot1, true);
+                transition(State.SHOOT_1);
                 break;
 
-            case COLLECT_BALL1:
+            case SHOOT_1:
                 if (!follower.isBusy()) {
-                    follower.followPath(path3, true);
-                    setPathState(PathState.COLLECT_BALL2);
+
+                    double t = stateTimer.getElapsedTimeSeconds();
+
+                    // Spin flywheels (MATCHES TELEOP)
+                    leftFlywheel.setPower(-0.635);
+                    rightFlywheel.setPower(0.635);
+
+                    // Feed after 5 seconds
+                    if (t > 5.0) {
+                        finalIntakeLeft.setPosition(0.0);
+                        finalIntakeRight.setPosition(0.0);
+
+                        transition(State.DRIVE_TO_COLLECT);
+                    }
                 }
                 break;
 
-            case COLLECT_BALL2:
+            case DRIVE_TO_COLLECT:
+                stopShooter();
+                follower.followPath(pathCollect1, true);
+                transition(State.COLLECT_1);
+                break;
+
+            case COLLECT_1:
                 if (!follower.isBusy()) {
-                    follower.followPath(path4, true);
-                    setPathState(PathState.COLLECT_BALL3);
+                    follower.followPath(pathCollect2, true);
+                    transition(State.COLLECT_2);
                 }
                 break;
 
-            case COLLECT_BALL3:
+            case COLLECT_2:
                 if (!follower.isBusy()) {
-                    follower.followPath(path5, true);
-                    setPathState(PathState.TO_SHOOTPOS);
+                    follower.followPath(pathCollect3, true);
+                    transition(State.COLLECT_3);
                 }
                 break;
 
-            case TO_SHOOTPOS:
+            case COLLECT_3:
                 if (!follower.isBusy()) {
-                    follower.followPath(path6, true);
-                    setPathState(PathState.FINISHED);
+                    follower.followPath(pathReturnShoot, true);
+                    transition(State.DRIVE_BACK_TO_SHOOT);
+                }
+                break;
+
+            case DRIVE_BACK_TO_SHOOT:
+                if (!follower.isBusy()) {
+                    transition(State.FINISHED);
                 }
                 break;
 
             case FINISHED:
-                // Do nothing — robot stops here
+                stopShooter();
                 break;
         }
     }
 
-    public void setPathState(PathState newState) {
-        pathState = newState;
-        pathTimer.resetTimer();
+    /* ================= HELPERS ================= */
+
+    private void transition(State next) {
+        state = next;
+        stateTimer.resetTimer();
     }
 
-    @Override
-    public void init() {
-        pathState = PathState.DRIVE_STARTPOS_SHOOTPOS1;
-        pathTimer = new Timer();
-        opModeTimer = new Timer();
-
-        follower = Constants.createFollower(hardwareMap);
-
-        buildPaths();
-        follower.setPose(startPose);
-        follower.setMaxPower(0.70);
-    }
-
-    @Override
-    public void start() {
-        opModeTimer.resetTimer();
-        setPathState(pathState);
-    }
-
-    @Override
-    public void loop() {
-        follower.update();
-        statePathUpdate();
-
-        telemetry.addData("Current state", pathState);
-        telemetry.addData("x", follower.getPose().getX());
-        telemetry.addData("y", follower.getPose().getY());
-        telemetry.addData("heading", follower.getPose().getHeading());
-        telemetry.addData("Path Time", pathTimer.getElapsedTimeSeconds());
+    private void stopShooter() {
+        leftFlywheel.setPower(0);
+        rightFlywheel.setPower(0);
+        finalIntakeLeft.setPosition(1.0);
+        finalIntakeRight.setPosition(1.0);
     }
 }
-/*
-// terminal to run stuff
-chmod: adb: No such file or directory
- % cd ~/Library/Android/sdk/platform-tools
- % ls
-adb			hprof-conv		make_f2fs_casefold	NOTICE.txt		sqlite3
-etc1tool		lib64			mke2fs			package.xml
-fastboot		make_f2fs		mke2fs.conf		source.properties
- % chmod +x adb
- % ./adb devices
-List of devices attached
-4315Q2U9R9	device
-
- % ./adb connect 192.168.43.1:5555
-connected to 192.168.43.1:5555
- */
