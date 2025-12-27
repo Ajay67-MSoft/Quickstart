@@ -1369,9 +1369,8 @@ class Drawing {
  */
 
 class Square extends OpMode { // ------------------ SQUARE CODE STARTS HERE --------------------
-
-    private final Pose startPose = new Pose(72, 72, Math.toRadians(0));
     private final Pose startPoseTurn = new Pose(72, 72, Math.toRadians(90));
+    private final Pose startPose = new Pose(72, 72, Math.toRadians(0));
 
     private final Pose interPose1 = new Pose(72, 24 + 72, Math.toRadians(90)); // add y
     private final Pose interPose1Turn = new Pose(72, 24 + 72, Math.toRadians(180));
@@ -1405,8 +1404,8 @@ class Square extends OpMode { // ------------------ SQUARE CODE STARTS HERE ----
 
     @Override
     public void init_loop() {
-        telemetryM.debug("This will run in a roughly triangular shape, starting on the bottom-middle point.");
-        telemetryM.debug("So, make sure you have enough space to the left, front, and right to run the OpMode.");
+        telemetryM.debug("This will run in a roughly sqare shape, starting on the bottom-middle point.");
+        telemetryM.debug("So, make sure you have enough space to the up, down and outside to run the OpMode.");
         telemetryM.update(telemetry);
         follower.update();
         drawOnlyCurrent();
