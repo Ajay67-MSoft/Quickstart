@@ -53,6 +53,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     /* ================= POSES ================= */
 
+    21.04, 123.35
     private final Pose startPose = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143));
     private final Pose shootPose = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(143));
 
@@ -170,37 +171,43 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
             case SHOOT_1:
                 double t = stateTimer.getElapsedTimeSeconds();
-
-                leftFlywheel.setPower(-0.6);
-                rightFlywheel.setPower(0.58);
+n
+                leftFlywheel.setPower(-0.58);
+                rightFlywheel.setPower(0.5);
 
                 if (t > 3.0) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
-
+/*
                 if (t > 4.0) {
                     leftFlywheel.setPower(0.6);
                     rightFlywheel.setPower(-0.58);
                 }
-
+*/
                 if (t > 4.75) {
                     finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                     finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+                }
+                if (t> 5.5)
+                {
                     intake1150.setPower(-1);
-                    leftFlywheel.setPower(-0.6);
-                    rightFlywheel.setPower(0.58);
+                //    leftFlywheel.setPower(-0.6);
+                //    rightFlywheel.setPower(0.58);
+
                 }
 
-                if (t > 5) {
+                if (t > 6) {
+                    finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
+                    finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                     intake1150.setPower(0);
                 }
-
+/*
                 if (t > 7.75) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
-
+*/
                 if (t > 8.75) {
                     // stop flywheels
                     leftFlywheel.setPower(0);
