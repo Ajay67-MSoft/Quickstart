@@ -13,9 +13,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 /*
 GOALS WITH THIS COMMIT
-1. fix collecting position
-2. fix second shooting position --- turns out it was already fixed :sob:
-3. change servo position to 20, dont listen to chat jee pee tee
+1. fix flywheels starting immediately
+2. readjust values based on blue structure instead of yellow line
  */
 
 
@@ -52,12 +51,12 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     /* ================= POSES ================= */
 
-    private final Pose startPose = new Pose(21.04, 123.35, Math.toRadians(144));
-    private final Pose shootPose = new Pose(64.5, 98.0, Math.toRadians(142));
+    private final Pose startPose = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143)); // fix 2
+    private final Pose shootPose = new Pose(64.5, 98.0, Math.toRadians(142)); // fix 2
 
-    private final Pose collect1 = new Pose(40.4, 80, Math.toRadians(180));// fix 1
-    private final Pose collect2 = new Pose(34.9, 80, Math.toRadians(180));// fix 1
-    private final Pose collect3 = new Pose(30.0, 80, Math.toRadians(180)); // fix 1
+    private final Pose collect1 = new Pose(40.4, 80, Math.toRadians(180));
+    private final Pose collect2 = new Pose(34.9, 80, Math.toRadians(180));
+    private final Pose collect3 = new Pose(30.0, 80, Math.toRadians(180));
 
     /* ================= PATHS ================= */
 
@@ -71,7 +70,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     // defines final intake servo feeding and default positions
     private final double SERVO_FEED_POSITION = 0.0;    // Position to feed game elements
-    private final double SERVO_STOP_POSITION = 20;    // Default position -------- fix 3 ---------
+    private final double SERVO_STOP_POSITION = 20;    // Default position
 
     /* ================= INIT ================= */
 
@@ -169,8 +168,12 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
             case DRIVE_TO_SHOOT_1:
                 follower.followPath(pathShoot1, true);
-                transition(State.SHOOT_1);
+
+                if (!follower.isBusy()) { // fix 1 - all other cases contain follower is busy statement
+                    transition(State.SHOOT_1);
+                }
                 break;
+
 
             case SHOOT_1:
                 double t = stateTimer.getElapsedTimeSeconds();
@@ -185,7 +188,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
-                if (t > 6.0) { // fix 3 --------------
+                if (t > 6.0) {
                     leftFlywheel.setPower(0);
                     rightFlywheel.setPower(0);
                     finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
