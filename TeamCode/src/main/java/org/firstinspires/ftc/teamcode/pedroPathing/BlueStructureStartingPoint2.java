@@ -54,9 +54,9 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private final Pose startPose = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143)); // fix 2
     private final Pose shootPose = new Pose(64.5, 98.0, Math.toRadians(142)); // fix 2
 
-    private final Pose collect1 = new Pose(40.4, 80, Math.toRadians(180));
-    private final Pose collect2 = new Pose(34.9, 80, Math.toRadians(180));
-    private final Pose collect3 = new Pose(30.0, 80, Math.toRadians(180));
+    private final Pose collect1 = new Pose(40.4, 83, Math.toRadians(180)); // fix 2
+    private final Pose collect2 = new Pose(34.9, 83, Math.toRadians(180)); // fix 2
+    private final Pose collect3 = new Pose(30.0, 83, Math.toRadians(180)); // fix 2
 
     /* ================= PATHS ================= */
 
