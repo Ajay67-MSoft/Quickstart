@@ -21,6 +21,9 @@ GOALS WITH THIS COMMIT
 @TeleOp
 public class BlueStructureStartingPoint2 extends OpMode {
 
+    private boolean pathStarted = false;
+
+
     /* ================= HARDWARE ================= */
 
     private DcMotor leftFlywheel;
@@ -167,13 +170,16 @@ public class BlueStructureStartingPoint2 extends OpMode {
         switch (state) {
 
             case DRIVE_TO_SHOOT_1:
-                follower.followPath(pathShoot1, true);
+                if (!pathStarted) {
+                    follower.followPath(pathShoot1, true);
+                    pathStarted = true;
+                }
 
-                if (!follower.isBusy()) { // fix 1 - all other cases contain follower is busy statement
+                if (!follower.isBusy()) {
+                    pathStarted = false;
                     transition(State.SHOOT_1);
                 }
                 break;
-
 
             case SHOOT_1:
                 double t = stateTimer.getElapsedTimeSeconds();
