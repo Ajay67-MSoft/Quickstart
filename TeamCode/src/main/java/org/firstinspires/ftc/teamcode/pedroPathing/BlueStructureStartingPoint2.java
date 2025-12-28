@@ -71,7 +71,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
     /* ================= SERVO POSITIONS ================= */
 
     private final double SERVO_FEED_POSITION = 0.0;
-    private final double SERVO_STOP_POSITION = 0.5;
+    private final double SERVO_STOP_POSITION = 20;
 
     /* ================= INIT ================= */
 
@@ -171,23 +171,53 @@ public class BlueStructureStartingPoint2 extends OpMode {
             case SHOOT_1:
                 double t = stateTimer.getElapsedTimeSeconds();
 
-                leftFlywheel.setPower(-0.635);
-                rightFlywheel.setPower(0.635);
+                leftFlywheel.setPower(-0.6);
+                rightFlywheel.setPower(0.58);
 
-                if (t > 2.0) {
+                if (t > 3.0) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
-                if (t > 3.0) {
-                    stopShooter();
+                if (t > 4.0) {
+                    leftFlywheel.setPower(0.6);
+                    rightFlywheel.setPower(-0.58);
+                }
+
+                if (t > 4.75) {
+                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+                    intake1150.setPower(-1);
+                    leftFlywheel.setPower(-0.6);
+                    rightFlywheel.setPower(0.58);
+                }
+
+                if (t > 5) {
+                    intake1150.setPower(0);
+                }
+
+                if (t > 7.75) {
+                    finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
+                    finalIntakeRight.setPosition(SERVO_FEED_POSITION);
+                }
+
+                if (t > 8.75) {
+                    // stop flywheels
+                    leftFlywheel.setPower(0);
+                    rightFlywheel.setPower(0);
+                    // reset servo positions
+                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                     transition(State.DRIVE_TO_COLLECT);
                 }
                 break;
 
             case DRIVE_TO_COLLECT:
-                follower.followPath(pathCollect1, true);
-                transition(State.COLLECT_1);
+                if (!follower.isBusy()) {
+                    follower.followPath(pathCollect1, true);
+                    transition(State.COLLECT_1);
+                }
+
                 break;
 
             case COLLECT_1:
@@ -217,14 +247,14 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 double t2 = stateTimer.getElapsedTimeSeconds();
 
                 if (t2 < 0.75) {
-                    leftFlywheel.setPower(0.635);
-                    rightFlywheel.setPower(-0.635);
+                    leftFlywheel.setPower(0.6);
+                    rightFlywheel.setPower(-0.58);
                 } else if (t2 < 1.0) {
                     leftFlywheel.setPower(0);
                     rightFlywheel.setPower(0);
                 } else if (t2 < 4.0) {
-                    leftFlywheel.setPower(-0.635);
-                    rightFlywheel.setPower(0.635);
+                    leftFlywheel.setPower(-0.6);
+                    rightFlywheel.setPower(0.58);
 
                     if (t2 < 1.75) {
                         finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
@@ -239,7 +269,10 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
             case FINISHED:
                 intake1150.setPower(0);
-                stopShooter();
+                leftFlywheel.setPower(0);
+                rightFlywheel.setPower(0);
+                finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+                finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                 break;
         }
     }
@@ -249,12 +282,5 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private void transition(State next) {
         state = next;
         stateTimer.resetTimer();
-    }
-
-    private void stopShooter() {
-        leftFlywheel.setPower(0);
-        rightFlywheel.setPower(0);
-        finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
-        finalIntakeRight.setPosition(SERVO_STOP_POSITION);
     }
 }
