@@ -21,7 +21,7 @@ GOALS WITH THIS COMMIT
 public class BlueStructureStartingPoint2 extends OpMode {
 
     private boolean pathStarted = false;
-
+private double leftlflypower = .6 ;
     /* ================= HARDWARE ================= */
 
     private DcMotor leftFlywheel;
@@ -173,35 +173,44 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
                 leftFlywheel.setPower(-0.6);
                 rightFlywheel.setPower(0.58);
-
-                if (t > 3.0) {
+                wait(3000);
+               // if (t > 3.0)
+                {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
-                if (t > 4.0) {
-                    leftFlywheel.setPower(0.6);
-                    rightFlywheel.setPower(-0.58);
-                }
+//                if (t > 4.0) {
+//                    leftFlywheel.setPower(0.6);
+//                    rightFlywheel.setPower(-0.58);
+//                }
+                wait(3000);
 
-                if (t > 4.75) {
+                //if (t > 4.75)
+                {
+
+                    //leftFlywheel.setPower(-0.6);
+                    //rightFlywheel.setPower(0.58);
+                    //wait (3000);
                     finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                     finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+                    wait(1000);
                     intake1150.setPower(-1);
-                    leftFlywheel.setPower(-0.6);
-                    rightFlywheel.setPower(0.58);
                 }
-
-                if (t > 5) {
+                   wait(1500);
+                //if (t > 5)
+                {
                     intake1150.setPower(0);
                 }
-
-                if (t > 7.75) {
-                    finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
-                    finalIntakeRight.setPosition(SERVO_FEED_POSITION);
+            wait(500);
+                //if (t > 7.75)
+                {
+                finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
+                finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
-
-                if (t > 8.75) {
+            wait(500);
+                //if (t > 8.75)
+                {
                     // stop flywheels
                     leftFlywheel.setPower(0);
                     rightFlywheel.setPower(0);
