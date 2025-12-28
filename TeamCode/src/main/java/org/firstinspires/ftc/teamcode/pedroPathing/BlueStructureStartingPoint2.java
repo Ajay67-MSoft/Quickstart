@@ -11,6 +11,14 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+/*
+GOALS WITH THIS COMMIT
+1. fix collecting position
+2. fix second shooting position --- turns out it was already fixed :sob:
+3. change servo position to 20, dont listen to chat jee pee tee
+ */
+
+
 @TeleOp
 public class BlueStructureStartingPoint2 extends OpMode {
 
@@ -47,10 +55,9 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private final Pose startPose = new Pose(21.04, 123.35, Math.toRadians(144));
     private final Pose shootPose = new Pose(64.5, 98.0, Math.toRadians(142));
 
-    private final Pose collect1 = new Pose(40.4, 76, Math.toRadians(180));
-    private final Pose collect2 = new Pose(34.9, 76, Math.toRadians(180));
-    private final Pose collect3 = new Pose(30.0, 76, Math.toRadians(180));
-    private final Pose collect4 = new Pose(25.0, 76, Math.toRadians(180));
+    private final Pose collect1 = new Pose(40.4, 80, Math.toRadians(180));// fix 1
+    private final Pose collect2 = new Pose(34.9, 80, Math.toRadians(180));// fix 1
+    private final Pose collect3 = new Pose(30.0, 80, Math.toRadians(180)); // fix 1
 
     /* ================= PATHS ================= */
 
@@ -59,6 +66,12 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private PathChain pathCollect2;
     private PathChain pathCollect3;
     private PathChain pathReturnShoot;
+
+    /* ================= SERVO POSITIONS ================= */
+
+    // defines final intake servo feeding and default positions
+    private final double SERVO_FEED_POSITION = 0.0;    // Position to feed game elements
+    private final double SERVO_STOP_POSITION = 20;    // Default position -------- fix 3 ---------
 
     /* ================= INIT ================= */
 
@@ -89,9 +102,9 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
         finalIntakeRight.setDirection(Servo.Direction.REVERSE);
 
-        // Default: NOT feeding
-        finalIntakeLeft.setPosition(20.0);
-        finalIntakeRight.setPosition(20.0);
+        // Default: NOT feeding (valid servo range is 0.0 to 1.0)
+        finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+        finalIntakeRight.setPosition(SERVO_STOP_POSITION);
 
         buildPaths();
 
@@ -124,8 +137,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 .build();
 
         pathReturnShoot = follower.pathBuilder()
-                .addPath(new BezierLine(collect4, shootPose))
-                .setLinearHeadingInterpolation(collect4.getHeading(), shootPose.getHeading())
+                .addPath(new BezierLine(collect3, shootPose))
+                .setLinearHeadingInterpolation(collect3.getHeading(), shootPose.getHeading())
                 .build();
     }
 
@@ -141,6 +154,10 @@ public class BlueStructureStartingPoint2 extends OpMode {
         telemetry.addData("Timer", stateTimer.getElapsedTimeSeconds());
         telemetry.addData("X", follower.getPose().getX());
         telemetry.addData("Y", follower.getPose().getY());
+        telemetry.addData("Left Flywheel Power", leftFlywheel.getPower());
+        telemetry.addData("Right Flywheel Power", rightFlywheel.getPower());
+        telemetry.addData("Servo Left Pos", finalIntakeLeft.getPosition());
+        telemetry.addData("Servo Right Pos", finalIntakeRight.getPosition());
         telemetry.update();
     }
 
@@ -156,21 +173,28 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 break;
 
             case SHOOT_1:
-                if (!follower.isBusy()) {
+                double t = stateTimer.getElapsedTimeSeconds();
 
-                    double t = stateTimer.getElapsedTimeSeconds();
+                // fly wheel
+                leftFlywheel.setPower(-0.635);
+                rightFlywheel.setPower(0.635);
 
-                    // Spin flywheels (MATCHES TELEOP)
-                    leftFlywheel.setPower(-0.635);
-                    rightFlywheel.setPower(0.635);
+                // Wait for flywheels to spin up, then feed
+                if (t > 5.0) {
+                    finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
+                    finalIntakeRight.setPosition(SERVO_FEED_POSITION);
+                }
 
-                    // Feed after 5 seconds
-                    if (t > 5.0) {
-                        finalIntakeLeft.setPosition(0.0);
-                        finalIntakeRight.setPosition(0.0);
+                if (t > 6.0) { // fix 3 --------------
+                    leftFlywheel.setPower(0);
+                    rightFlywheel.setPower(0);
+                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+                }
 
-                        transition(State.DRIVE_TO_COLLECT);
-                    }
+                // After feeding for 1 second, move to next state
+                if (t > 7.0) {
+                    transition(State.DRIVE_TO_COLLECT);
                 }
                 break;
 
@@ -223,7 +247,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private void stopShooter() {
         leftFlywheel.setPower(0);
         rightFlywheel.setPower(0);
-        finalIntakeLeft.setPosition(1.0);
-        finalIntakeRight.setPosition(1.0);
+        finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+        finalIntakeRight.setPosition(SERVO_STOP_POSITION);
     }
 }
