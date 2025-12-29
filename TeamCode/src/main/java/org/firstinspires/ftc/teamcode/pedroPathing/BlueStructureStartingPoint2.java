@@ -55,8 +55,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private final Pose startPose = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143));
     private final Pose shootPose = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(143));
 
-    private final Pose collect1 = new Pose(44.4, 85, Math.toRadians(180));
-    private final Pose collect2 = new Pose(34.9, 85, Math.toRadians(180));
+    private final Pose collect1 = new Pose(44.4, 82, Math.toRadians(180));
+    private final Pose collect2 = new Pose(34.9, 82, Math.toRadians(180));
 
     private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(138));
 
@@ -141,7 +141,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addLine("2 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
+        telemetry.addLine("3 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
