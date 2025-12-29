@@ -59,6 +59,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private final Pose collect2 = new Pose(34.9, 82, Math.toRadians(180));
 
     private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(138));
+    private final Pose endPose = new Pose(44.4, 82, Math.toRadians(180));
 
     /* ================= PATHS ================= */
 
@@ -66,6 +67,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private PathChain pathCollect1;
     private PathChain pathCollect2;
     private PathChain pathReturnShoot;
+    private PathChain pathDriveToEnd;
 
     /* ================= SERVO POSITIONS ================= */
 
@@ -135,13 +137,18 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 .addPath(new BezierLine(collect2, shootPose2))
                 .setLinearHeadingInterpolation(collect2.getHeading(), shootPose2.getHeading())
                 .build();
+
+        pathDriveToEnd = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose2, endPose))
+                .setLinearHeadingInterpolation(shootPose2.getHeading(), endPose.getHeading())
+                .build();
     }
 
     /* ================= LOOP ================= */
 
     @Override
     public void loop() {
-        telemetry.addLine("3 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
+        telemetry.addLine("4 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
@@ -240,7 +247,6 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
             case DRIVE_BACK_TO_SHOOT_2:
                 if (!follower.isBusy()) {
-//                    follower.followPath(pathReturnShoot, true); -- uncomment when new path added
                     transition(State.SHOOT_2);
                 }
                 break;
@@ -266,6 +272,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                     transition(State.FINISHED);
+                    follower.followPath(pathDriveToEnd, true);
                 }
                 break;
 
