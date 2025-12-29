@@ -59,7 +59,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private final Pose collect2 = new Pose(34.9, 82, Math.toRadians(180));
 
     private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(138));
-    private final Pose endPose = new Pose(44.4, 82, Math.toRadians(180));
+    private final Pose endPose = new Pose(44.4, 72, Math.toRadians(180));
 
     /* ================= PATHS ================= */
 
@@ -148,7 +148,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addLine("4 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
+        telemetry.addLine("5 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
@@ -230,7 +230,16 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 break;
 
             case COLLECT_1:
+                leftFlywheel.setPower(3);
+                rightFlywheel.setPower(-3);
+                // reset servo positions
+                finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+                finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                 intake1150.setPower(-1);
+                leftFlywheel.setPower(0);
+                rightFlywheel.setPower(0);
+                finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
+                finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 if (!follower.isBusy()) {
                     follower.followPath(pathCollect2, true);
                     transition(State.COLLECT_2);
@@ -239,8 +248,13 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
             case COLLECT_2:
                 if (!follower.isBusy()) {
+
                     follower.followPath(pathReturnShoot, true);
                     intake1150.setPower(0);
+                    leftFlywheel.setPower(0);
+                    rightFlywheel.setPower(0);
+//                    finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
+//                    finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                     transition(State.DRIVE_BACK_TO_SHOOT_2);
                 }
                 break;
@@ -254,29 +268,55 @@ public class BlueStructureStartingPoint2 extends OpMode {
             case SHOOT_2:
                 double t2 = stateTimer.getElapsedTimeSeconds();
 
-                if (t2 < 0.75) {
-                    leftFlywheel.setPower(0.6);
-                    rightFlywheel.setPower(-0.58);
-                } else if (t2 < 1.0) {
-                    leftFlywheel.setPower(0);
-                    rightFlywheel.setPower(0);
-                } else if (t2 < 4.0) {
-                    leftFlywheel.setPower(-0.6);
-                    rightFlywheel.setPower(0.58);
+                // start flywheels
 
-                    if (t2 < 1.75) {
-                        finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
-                        finalIntakeRight.setPosition(SERVO_FEED_POSITION);
-                    }
-                } else {
+                leftFlywheel.setPower(-0.58);
+                rightFlywheel.setPower(0.5);
+
+                // shoot first two balls
+
+                if (t2 > 3.0) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
-                    follower.followPath(pathDriveToEnd, true);
+                }
+
+                // reset final intake servo
+
+                if (t2 > 4.0) {
+                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+                }
+
+                // start intake servo to move third ball
+
+                if (t2 > 5.0) {
+                    intake1150.setPower(-1);
+                }
+
+                // because flywheels are still running,
+                // use final intake servo to shoot third ball
+
+                if (t2 > 6.0) {
+                    finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
+                    finalIntakeRight.setPosition(SERVO_FEED_POSITION);
+                }
+
+                // stop all motors because we have no balls
+
+                if (t2 > 7.0) {
+                    // stop flywheels
+                    leftFlywheel.setPower(0);
+                    rightFlywheel.setPower(0);
+                    // reset servo positions
+                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+                    // stop first intake servo
+                    intake1150.setPower(0);
                     transition(State.FINISHED);
                 }
                 break;
-
             case FINISHED:
+                follower.followPath(pathDriveToEnd, true);
                 intake1150.setPower(0);
                 leftFlywheel.setPower(0);
                 rightFlywheel.setPower(0);
