@@ -148,7 +148,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addLine("5 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
+        telemetry.addLine("7 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
@@ -213,8 +213,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
                     leftFlywheel.setPower(0);
                     rightFlywheel.setPower(0);
                     // reset servo positions
-                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
-                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+//                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+//                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                     // stop first intake servo
                     intake1150.setPower(0);
                     transition(State.DRIVE_TO_COLLECT);
@@ -233,13 +233,11 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 leftFlywheel.setPower(3);
                 rightFlywheel.setPower(-3);
                 // reset servo positions
-                finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
-                finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+                finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
+                finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 intake1150.setPower(-1);
                 leftFlywheel.setPower(0);
                 rightFlywheel.setPower(0);
-                finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
-                finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 if (!follower.isBusy()) {
                     follower.followPath(pathCollect2, true);
                     transition(State.COLLECT_2);
@@ -248,7 +246,6 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
             case COLLECT_2:
                 if (!follower.isBusy()) {
-
                     follower.followPath(pathReturnShoot, true);
                     intake1150.setPower(0);
                     leftFlywheel.setPower(0);
