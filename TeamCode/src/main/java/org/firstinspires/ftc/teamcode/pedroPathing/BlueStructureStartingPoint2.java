@@ -45,7 +45,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
         COLLECT_1,
         COLLECT_2,
         COLLECT_3,
-        DRIVE_BACK_TO_SHOOT,
+        DRIVE_BACK_TO_SHOOT_2,
         FINISHED
     }
 
@@ -53,13 +53,14 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     /* ================= POSES ================= */
 
-    21.04, 123.35
     private final Pose startPose = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143));
     private final Pose shootPose = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(143));
 
-    private final Pose collect1 = new Pose(40.4, 87, Math.toRadians(180));
+    private final Pose collect1 = new Pose(44.4, 87, Math.toRadians(180));
     private final Pose collect2 = new Pose(34.9, 87, Math.toRadians(180));
     private final Pose collect3 = new Pose(30.0, 87, Math.toRadians(180));
+
+    private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(143));
 
     /* ================= PATHS ================= */
 
@@ -138,8 +139,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 .build();
 
         pathReturnShoot = follower.pathBuilder()
-                .addPath(new BezierLine(collect3, shootPose))
-                .setLinearHeadingInterpolation(collect3.getHeading(), shootPose.getHeading())
+                .addPath(new BezierLine(collect3, shootPose2))
+                .setLinearHeadingInterpolation(collect3.getHeading(), shootPose2.getHeading())
                 .build();
     }
 
@@ -147,7 +148,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addLine("POOPING"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
+        telemetry.addLine("POOPING ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
@@ -171,50 +172,51 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
             case SHOOT_1:
                 double t = stateTimer.getElapsedTimeSeconds();
-n
+
+                // start flywheels
+
                 leftFlywheel.setPower(-0.58);
                 rightFlywheel.setPower(0.5);
+
+                // shoot first two balls
 
                 if (t > 3.0) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
-/*
+
+                // reset final intake servo
+
                 if (t > 4.0) {
-                    leftFlywheel.setPower(0.6);
-                    rightFlywheel.setPower(-0.58);
-                }
-*/
-                if (t > 4.75) {
                     finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                     finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                 }
-                if (t> 5.5)
-                {
+
+                // start intake servo to move third ball
+
+                if (t > 5.0) {
                     intake1150.setPower(-1);
-                //    leftFlywheel.setPower(-0.6);
-                //    rightFlywheel.setPower(0.58);
-
                 }
 
-                if (t > 6) {
-                    finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
-                    finalIntakeRight.setPosition(SERVO_FEED_POSITION);
-                    intake1150.setPower(0);
-                }
-/*
-                if (t > 7.75) {
+                // because flywheels are still running,
+                // use final intake servo to shoot third ball
+
+                if (t > 6.0) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
-*/
-                if (t > 8.75) {
+
+                // stop all motors because we have no balls
+
+                if (t > 7.0) {
                     // stop flywheels
                     leftFlywheel.setPower(0);
                     rightFlywheel.setPower(0);
                     // reset servo positions
                     finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                     finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+                    // stop first intake servo
+                    intake1150.setPower(0);
                     transition(State.DRIVE_TO_COLLECT);
                 }
                 break;
@@ -246,11 +248,11 @@ n
                 if (!follower.isBusy()) {
                     intake1150.setPower(0);
                     follower.followPath(pathReturnShoot, true);
-                    transition(State.DRIVE_BACK_TO_SHOOT);
+                    transition(State.DRIVE_BACK_TO_SHOOT_2);
                 }
                 break;
 
-            case DRIVE_BACK_TO_SHOOT:
+            case DRIVE_BACK_TO_SHOOT_2:
                 double t2 = stateTimer.getElapsedTimeSeconds();
 
                 if (t2 < 0.75) {
