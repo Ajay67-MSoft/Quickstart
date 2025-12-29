@@ -13,8 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 /*
 GOALS WITH THIS COMMIT
-1. get shoot position right
-2. get ball collect position right
+idk check title
  */
 
 @TeleOp
@@ -44,8 +43,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
         DRIVE_TO_COLLECT,
         COLLECT_1,
         COLLECT_2,
-        COLLECT_3,
         DRIVE_BACK_TO_SHOOT_2,
+        SHOOT_2,
         FINISHED
     }
 
@@ -58,16 +57,14 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     private final Pose collect1 = new Pose(44.4, 87, Math.toRadians(180));
     private final Pose collect2 = new Pose(34.9, 87, Math.toRadians(180));
-    private final Pose collect3 = new Pose(30.0, 87, Math.toRadians(180));
 
-    private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(143));
+    private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(138));
 
     /* ================= PATHS ================= */
 
     private PathChain pathShoot1;
     private PathChain pathCollect1;
     private PathChain pathCollect2;
-    private PathChain pathCollect3;
     private PathChain pathReturnShoot;
 
     /* ================= SERVO POSITIONS ================= */
@@ -133,14 +130,10 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 .setLinearHeadingInterpolation(collect1.getHeading(), collect2.getHeading())
                 .build();
 
-        pathCollect3 = follower.pathBuilder()
-                .addPath(new BezierLine(collect2, collect3))
-                .setLinearHeadingInterpolation(collect2.getHeading(), collect3.getHeading())
-                .build();
 
         pathReturnShoot = follower.pathBuilder()
-                .addPath(new BezierLine(collect3, shootPose2))
-                .setLinearHeadingInterpolation(collect3.getHeading(), shootPose2.getHeading())
+                .addPath(new BezierLine(collect2, shootPose2))
+                .setLinearHeadingInterpolation(collect2.getHeading(), shootPose2.getHeading())
                 .build();
     }
 
@@ -148,7 +141,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addLine("POOPING ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
+        telemetry.addLine("2 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
@@ -239,20 +232,20 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
             case COLLECT_2:
                 if (!follower.isBusy()) {
-                    follower.followPath(pathCollect3, true);
-                    transition(State.COLLECT_3);
-                }
-                break;
-
-            case COLLECT_3:
-                if (!follower.isBusy()) {
-                    intake1150.setPower(0);
                     follower.followPath(pathReturnShoot, true);
+                    intake1150.setPower(0);
                     transition(State.DRIVE_BACK_TO_SHOOT_2);
                 }
                 break;
 
             case DRIVE_BACK_TO_SHOOT_2:
+                if (!follower.isBusy()) {
+//                    follower.followPath(pathReturnShoot, true); -- uncomment when new path added
+                    transition(State.SHOOT_2);
+                }
+                break;
+
+            case SHOOT_2:
                 double t2 = stateTimer.getElapsedTimeSeconds();
 
                 if (t2 < 0.75) {
