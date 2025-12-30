@@ -30,8 +30,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private Servo finalIntakeLeft;
     private Servo finalIntakeRight;
 
-    private double leftFlywheelPower = -0.38; // orignal was 0.58, went to -0.38 to account for max voltage battery
-    private double rightFlywheelPower = 0.25; // original was 0.5
+    private double leftFlywheelPower = -0.58; // orignal was 0.58, went to -0.38 to account for max voltage battery
+    private double rightFlywheelPower = 0.5; // original was 0.5
 
     private double flywheelRampUpDurationSeconds = 1000;
 
@@ -179,8 +179,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 double t = stateTimer.getElapsedTimeSeconds();
 
                 // start flywheels
-                rightFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                leftFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//                rightFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//                leftFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 leftFlywheel.setPower(leftFlywheelPower);
                 rightFlywheel.setPower(rightFlywheelPower);
 
