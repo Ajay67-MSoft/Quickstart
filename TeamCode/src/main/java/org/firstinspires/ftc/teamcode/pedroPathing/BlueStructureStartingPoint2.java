@@ -13,8 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 /*
 GOALS WITH THIS COMMIT
-1. fix pickup position again
-2. make sure it picks up second ball
+1. fix how fast flywheels spin at max battery voltage
  */
 
 @TeleOp
@@ -30,6 +29,9 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     private Servo finalIntakeLeft;
     private Servo finalIntakeRight;
+
+    private double leftFlywheelPower = -0.38; // orignal was 0.58, went to -0.38 to account for max voltage battery
+    private double rightFlywheelPower = 0.25; // original was 0.5
 
     /* ================= PEDRO ================= */
 
@@ -90,8 +92,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
         rightFlywheel = hardwareMap.get(DcMotor.class, "6000 RPM motor flywheel right");
         intake1150    = hardwareMap.get(DcMotor.class, "1150 RPM intake");
 
-        leftFlywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightFlywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
         intake1150.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         leftFlywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -177,8 +179,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 // start flywheels
                 rightFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 leftFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                leftFlywheel.setPower(-0.58);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(leftFlywheelPower);
+                rightFlywheel.setPower(rightFlywheelPower);
 
                 // shoot first two balls
 
@@ -269,8 +271,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
                 // start flywheels
 
-                leftFlywheel.setPower(-0.58);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(leftFlywheelPower);
+                rightFlywheel.setPower(rightFlywheelPower);
 
                 // shoot first two balls
 
