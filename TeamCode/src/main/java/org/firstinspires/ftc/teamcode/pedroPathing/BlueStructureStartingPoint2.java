@@ -33,6 +33,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private double leftFlywheelPower = -0.38; // orignal was 0.58, went to -0.38 to account for max voltage battery
     private double rightFlywheelPower = 0.25; // original was 0.5
 
+    private double flywheelRampUpDurationSeconds = 1000;
+
     /* ================= PEDRO ================= */
 
     private Follower follower;
@@ -151,7 +153,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addLine("9 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
+        telemetry.addLine("10 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
