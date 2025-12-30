@@ -174,7 +174,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 double t = stateTimer.getElapsedTimeSeconds();
 
                 // start flywheels
-
+                rightFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                leftFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 leftFlywheel.setPower(-0.58);
                 rightFlywheel.setPower(0.5);
 
