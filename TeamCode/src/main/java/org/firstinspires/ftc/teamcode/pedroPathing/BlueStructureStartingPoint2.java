@@ -273,6 +273,9 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
                 // start flywheels
 
+                finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+                finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+
                 leftFlywheel.setPower(leftFlywheelPower);
                 rightFlywheel.setPower(rightFlywheelPower);
 
@@ -306,7 +309,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
                 // stop all motors because we have no balls
 
-                if (t2 > 7.0) {
+                if (t2 > 9.0) {
                     // stop flywheels
                     leftFlywheel.setPower(0);
                     rightFlywheel.setPower(0);
