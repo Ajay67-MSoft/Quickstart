@@ -30,10 +30,10 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private Servo finalIntakeLeft;
     private Servo finalIntakeRight;
 
-    private double leftFlywheelPower = -0.58+.05; // orignal was 0.58, went to -0.38 to account for max voltage battery
+    private double leftFlywheelPower = -0.58+.05; // orignal was 0.58
     private double rightFlywheelPower = 0.5-.05; // original was 0.5
 
-    private double flywheelRampUpDurationSeconds = 1000;
+    private double flywheelRampUpDurationSeconds = 3.0;
 
     /* ================= PEDRO ================= */
 
@@ -186,35 +186,35 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
                 // shoot first two balls
 
-                if (t > 3.0) {
+                if (t > flywheelRampUpDurationSeconds) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
                 // reset final intake servo
 
-                if (t > 4.0) {
+                if (t > flywheelRampUpDurationSeconds + 1.0) {
                     finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                     finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                 }
 
                 // start intake servo to move third ball
 
-                if (t > 5.0) {
+                if (t > flywheelRampUpDurationSeconds + 2.0) {
                     intake1150.setPower(-1);
                 }
 
                 // because flywheels are still running,
                 // use final intake servo to shoot third ball
 
-                if (t > 6.0) {
+                if (t > flywheelRampUpDurationSeconds + 3.0) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
                 // stop all motors because we have no balls
 
-                if (t > 7.0) {
+                if (t > flywheelRampUpDurationSeconds + 4.0) {
                     // stop flywheels
                     leftFlywheel.setPower(0);
                     rightFlywheel.setPower(0);
