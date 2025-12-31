@@ -16,7 +16,7 @@ GOALS WITH THIS COMMIT
  */
 
 @TeleOp
-public class FarEndAuto extends OpMode {
+public class FarEndAutoBLUE extends OpMode {
 
     private boolean pathStarted = false;
 
@@ -45,10 +45,6 @@ public class FarEndAuto extends OpMode {
         DRIVE_TO_SHOOT_1,
         SHOOT_1,
         DRIVE_TO_COLLECT,
-        COLLECT_1,
-        COLLECT_2,
-        DRIVE_BACK_TO_SHOOT_2,
-        SHOOT_2,
         FINISHED
     }
 
@@ -58,19 +54,11 @@ public class FarEndAuto extends OpMode {
 
     private final Pose startPose = new Pose(56, 8.2, Math.toRadians(90));
     private final Pose shootPose = new Pose(60.019769357495875, 15.182866556836899, Math.toRadians(111));
-
-    private final Pose collect1 = new Pose(44.4, 84, Math.toRadians(180));
-    private final Pose collect2 = new Pose(29, 84, Math.toRadians(180));
-
-    private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(138));
-    private final Pose endPose = new Pose(44.4, 72, Math.toRadians(180));
+    private final Pose endPose = new Pose(56, 8.2, Math.toRadians(90));
 
     /* ================= PATHS ================= */
 
     private PathChain pathShoot1;
-    private PathChain pathCollect1;
-    private PathChain pathCollect2;
-    private PathChain pathReturnShoot;
     private PathChain pathDriveToEnd;
 
     /* ================= SERVO POSITIONS ================= */
@@ -126,25 +114,9 @@ public class FarEndAuto extends OpMode {
                 .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
                 .build();
 
-        pathCollect1 = follower.pathBuilder()
-                .addPath(new BezierLine(shootPose, collect1))
-                .setLinearHeadingInterpolation(shootPose.getHeading(), collect1.getHeading())
-                .build();
-
-        pathCollect2 = follower.pathBuilder()
-                .addPath(new BezierLine(collect1, collect2))
-                .setLinearHeadingInterpolation(collect1.getHeading(), collect2.getHeading())
-                .build();
-
-
-        pathReturnShoot = follower.pathBuilder()
-                .addPath(new BezierLine(collect2, shootPose2))
-                .setLinearHeadingInterpolation(collect2.getHeading(), shootPose2.getHeading())
-                .build();
-
         pathDriveToEnd = follower.pathBuilder()
-                .addPath(new BezierLine(shootPose2, endPose))
-                .setLinearHeadingInterpolation(shootPose2.getHeading(), endPose.getHeading())
+                .addPath(new BezierLine(shootPose, endPose))
+                .setLinearHeadingInterpolation(shootPose.getHeading(), endPose.getHeading())
                 .build();
     }
 
@@ -152,7 +124,7 @@ public class FarEndAuto extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addLine("12 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
+        telemetry.addLine("1 POOPS ON ANDY"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
@@ -184,36 +156,36 @@ public class FarEndAuto extends OpMode {
                 rightFlywheel.setPower(rightFlywheelPower);
 
                 // shoot first two balls
-
-                if (t > 3.0) {
+                // add 3.7 sec to account for farther distance
+                if (t > 6.7) { // original: 3 sec
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
                 // reset final intake servo
 
-                if (t > 4.0) {
+                if (t > 7.7) { // original: 4 sec
                     finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                     finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                 }
 
                 // start intake servo to move third ball
 
-                if (t > 5.0) {
+                if (t > 8.7) { // original: 5 sec
                     intake1150.setPower(-1);
                 }
 
                 // because flywheels are still running,
                 // use final intake servo to shoot third ball
 
-                if (t > 6.0) {
+                if (t > 9.7) { // original: 6 sec
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
                 // stop all motors because we have no balls
 
-                if (t > 7.0) {
+                if (t > 10.7) { // original: 7 sec
                     // stop flywheels
                     leftFlywheel.setPower(0);
                     rightFlywheel.setPower(0);
