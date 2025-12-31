@@ -30,7 +30,7 @@ public class FarEndAutoBLUE extends OpMode {
     private Servo finalIntakeRight;
 
     private double leftFlywheelPower = -0.58-.15; // orignal was 0.58, went to -0.38 to account for max voltage battery
-    private double rightFlywheelPower = 0.5+.15; // original was 0.5
+    private double rightFlywheelPower = 0.5+.05; // original was 0.5
 
     private double flywheelRampUpDurationSeconds = 3.0;
 
@@ -53,7 +53,7 @@ public class FarEndAutoBLUE extends OpMode {
     /* ================= POSES ================= */
 
     private final Pose startPose = new Pose(56, 8.2, Math.toRadians(90));
-    private final Pose shootPose = new Pose(60.019769357495875, 15.182866556836899, Math.toRadians(111));
+    private final Pose shootPose = new Pose(60.019769357495875, 15.182866556836899, Math.toRadians(120));
     private final Pose endPose = new Pose(56, 8.2, Math.toRadians(90));
 
     /* ================= PATHS ================= */
@@ -79,7 +79,7 @@ public class FarEndAutoBLUE extends OpMode {
 
         leftFlywheel  = hardwareMap.get(DcMotor.class, "6000 RPM motor");
         rightFlywheel = hardwareMap.get(DcMotor.class, "6000 RPM motor flywheel right");
-        intake1150    = hardwareMap.get(DcMotor.class, "1150 RPM in take");
+        intake1150    = hardwareMap.get(DcMotor.class, "1150 RPM intake");
 
 
 
