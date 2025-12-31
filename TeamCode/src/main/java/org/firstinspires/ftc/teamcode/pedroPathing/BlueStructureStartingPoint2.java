@@ -92,7 +92,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
         leftFlywheel  = hardwareMap.get(DcMotor.class, "6000 RPM motor");
         rightFlywheel = hardwareMap.get(DcMotor.class, "6000 RPM motor flywheel right");
-        intake1150    = hardwareMap.get(DcMotor.class, "1150 RPM in take");
+        intake1150 = hardwareMap.get(DcMotor.class, "1150 RPM intake");
 
 
 
