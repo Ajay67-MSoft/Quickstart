@@ -331,8 +331,10 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                 finalIntakeRight.setPosition(SERVO_STOP_POSITION);
 //                follower.stopFollowing();
-                follower.breakFollowing();
-                follower.update();
+                if (!follower.isBusy()) {
+                    follower.breakFollowing();
+                    follower.update();
+                }
                 break;
         }
     }
