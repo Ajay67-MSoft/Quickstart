@@ -52,6 +52,7 @@ public class REDstructureStartingPoint extends OpMode {
         COLLECT_2,
         DRIVE_BACK_TO_SHOOT_2,
         SHOOT_2,
+        DRIVE_OUTSIDE,
         FINISHED
     }
 
@@ -319,11 +320,17 @@ public class REDstructureStartingPoint extends OpMode {
                     finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                     // stop first intake servo
                     intake1150.setPower(0);
-                    transition(State.FINISHED);
+                    transition(State.DRIVE_OUTSIDE);
                 }
                 break;
-            case FINISHED:
+            case DRIVE_OUTSIDE:
                 follower.followPath(pathDriveToEnd, true);
+                if (!follower.isBusy()) {
+                    follower.breakFollowing();
+                    follower.update();
+                    transition(State.FINISHED);
+                }
+            case FINISHED:
                 intake1150.setPower(0);
                 leftFlywheel.setPower(0);
                 rightFlywheel.setPower(0);
