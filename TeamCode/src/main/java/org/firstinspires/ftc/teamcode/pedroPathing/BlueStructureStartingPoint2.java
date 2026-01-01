@@ -6,6 +6,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,7 +17,7 @@ GOALS WITH THIS COMMIT
 1. fix how fast flywheels spin at max battery voltage
  */
 
-@TeleOp
+@Autonomous
 public class BlueStructureStartingPoint2 extends OpMode {
 
     private boolean pathStarted = false;
