@@ -12,11 +12,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 /*
 GOALS WITH THIS COMMIT
-1. fix how fast flywheels spin at max battery voltage
+1. create red side pos by doing (144 - current x) and (current y)
+2. create red side angle by doing (180 - current angle)
  */
 
 @TeleOp
-public class FarEndAutoBLUE extends OpMode {
+public class REDFarEndAuto extends OpMode {
 
     private boolean pathStarted = false;
 
@@ -51,9 +52,9 @@ public class FarEndAutoBLUE extends OpMode {
 
     /* ================= POSES ================= */
 
-    private final Pose startPose = new Pose(56, 8.2, Math.toRadians(90));
-    private final Pose shootPose = new Pose(60.019769357495875, 15.182866556836899, Math.toRadians(122.5));
-    private final Pose endPose = new Pose(56, 8.2, Math.toRadians(90));
+    private final Pose startPose = new Pose(88, 8.2, Math.toRadians(90));
+    private final Pose shootPose = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(57.5));
+    private final Pose endPose = new Pose(88, 8.2, Math.toRadians(90));
 
     /* ================= PATHS ================= */
 
@@ -123,7 +124,7 @@ public class FarEndAutoBLUE extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addLine("1 POOPS ON ANDY"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
+        telemetry.addLine("1 RED POOP IN THE BACK ;-; ;-; ;-; ;-; ;-;"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
