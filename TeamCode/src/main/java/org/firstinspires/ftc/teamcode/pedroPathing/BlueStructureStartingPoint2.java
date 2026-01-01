@@ -113,6 +113,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
         finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
         finalIntakeRight.setPosition(SERVO_STOP_POSITION);
 
+        telemetry.addLine("13 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
+
         buildPaths();
 
         state = State.DRIVE_TO_SHOOT_1;
@@ -154,7 +156,6 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addLine("12 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
@@ -329,6 +330,9 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 rightFlywheel.setPower(0);
                 finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                 finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+//                follower.stopFollowing();
+                follower.breakFollowing();
+                follower.update();
                 break;
         }
     }
