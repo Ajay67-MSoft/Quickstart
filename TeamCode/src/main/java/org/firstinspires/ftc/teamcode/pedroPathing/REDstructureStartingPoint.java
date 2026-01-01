@@ -84,7 +84,7 @@ public class REDstructureStartingPoint extends OpMode {
 
     @Override
     public void init() {
-
+        telemetry.addLine("1 Red POOPS Front"); // ------------ VERY IMPORTANT VERSION NUMBER LINE ----------
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(startPose);
         follower.setMaxPower(0.70);
@@ -93,7 +93,7 @@ public class REDstructureStartingPoint extends OpMode {
 
         leftFlywheel  = hardwareMap.get(DcMotor.class, "6000 RPM motor");
         rightFlywheel = hardwareMap.get(DcMotor.class, "6000 RPM motor flywheel right");
-        intake1150    = hardwareMap.get(DcMotor.class, "1150 RPM in take");
+        intake1150    = hardwareMap.get(DcMotor.class, "1150 RPM intake");
 
 
 
@@ -154,7 +154,6 @@ public class REDstructureStartingPoint extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addLine("12 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
