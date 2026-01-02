@@ -324,11 +324,10 @@ public class REDstructureStartingPoint extends OpMode {
                 }
                 break;
             case DRIVE_OUTSIDE:
-                follower.followPath(pathDriveToEnd, true);
                 if (!follower.isBusy()) {
                     follower.breakFollowing();
                     follower.update();
-                    transition(State.FINISHED);
+                    transition(REDstructureStartingPoint.State.FINISHED);
                 }
             case FINISHED:
                 intake1150.setPower(0);
