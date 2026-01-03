@@ -3,9 +3,7 @@
 3. Add encoder for flywheel stuff in auto AND PUT IN DS CONFIG
     3a. run with encoder at certain speed, find best speed for shooting, run motor until target RPM is hit
     3b. two shooting positions to test - far end auto and blue structure auto
-4. Go to tech center
 5. Add encoder to teleop program 6 and auto
 6. Change password on DS wifi stuffs and DS itself
 7. Test all auto
-8. Bring ID to tech center
 
