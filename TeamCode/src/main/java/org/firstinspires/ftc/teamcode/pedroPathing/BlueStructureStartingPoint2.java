@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  1. implement motor encoders
  */
 
-@Autonomous
+//@Autonomous
 public class BlueStructureStartingPoint2 extends OpMode {
 
     private boolean pathStarted = false;
