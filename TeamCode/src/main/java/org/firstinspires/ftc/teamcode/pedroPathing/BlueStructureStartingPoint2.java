@@ -5,42 +5,38 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+
+/*
+ GOALS WITH THIS COMMIT
+ 1. implement motor encoders
+ */
 
 @Autonomous
 public class BlueStructureStartingPoint2 extends OpMode {
 
-    /* ================= HARDWARE ================= */
+    private boolean pathStarted = false;
 
-    private DcMotorEx leftFlywheel;
-    private DcMotorEx rightFlywheel;
+    /* ================= HARDWARE ================= */
+    private DcMotor leftFlywheel;
+    private DcMotor rightFlywheel;
     private DcMotor intake1150;
 
     private Servo finalIntakeLeft;
     private Servo finalIntakeRight;
 
-    /* ================= FLYWHEEL RPM CONTROL ================= */
-
-    private static final double TICKS_PER_REV = 28.0; // REV HD Hex
-    private static final double TARGET_RPM = 2000.0;
-    private static final double RPM_TOLERANCE = 75.0;
-    private static final double kP = 0.00035;
-
-    private double flywheelPower = 0.35;
+    private double leftFlywheelPower = -0.58 + 0.05;   // original was 0.58
+    private double rightFlywheelPower = 0.5 - 0.05;    // original was 0.5
+    private double flywheelRampUpDurationSeconds = 3.0;
 
     /* ================= PEDRO ================= */
-
     private Follower follower;
     private Timer stateTimer;
-    private boolean pathStarted = false;
 
     /* ================= STATES ================= */
-
     public enum State {
         DRIVE_TO_SHOOT_1,
         SHOOT_1,
@@ -56,16 +52,30 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private State state;
 
     /* ================= POSES ================= */
+    private final Pose startPose = new Pose(
+            24.746955345060893,
+            128.60622462787552,
+            Math.toRadians(143)
+    );
 
-    private final Pose startPose = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143));
-    private final Pose shootPose = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(143));
+    private final Pose shootPose = new Pose(
+            51.4424898511502,
+            104.83355886332882,
+            Math.toRadians(143)
+    );
+
     private final Pose collect1 = new Pose(44.4, 84, Math.toRadians(180));
     private final Pose collect2 = new Pose(29, 84, Math.toRadians(180));
-    private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(138));
+
+    private final Pose shootPose2 = new Pose(
+            51.4424898511502,
+            104.83355886332882,
+            Math.toRadians(138)
+    );
+
     private final Pose endPose = new Pose(44.4, 72, Math.toRadians(180));
 
     /* ================= PATHS ================= */
-
     private PathChain pathShoot1;
     private PathChain pathCollect1;
     private PathChain pathCollect2;
@@ -73,12 +83,10 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private PathChain pathDriveToEnd;
 
     /* ================= SERVO POSITIONS ================= */
-
-    private final double SERVO_FEED_POSITION = 0.0;
-    private final double SERVO_STOP_POSITION = 20;
+    private static final double SERVO_FEED_POSITION = 0.0;
+    private static final double SERVO_STOP_POSITION = 20;
 
     /* ================= INIT ================= */
-
     @Override
     public void init() {
 
@@ -88,30 +96,29 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
         stateTimer = new Timer();
 
-        leftFlywheel  = hardwareMap.get(DcMotorEx.class, "6000 RPM motor");
-        rightFlywheel = hardwareMap.get(DcMotorEx.class, "6000 RPM motor flywheel right");
-        intake1150    = hardwareMap.get(DcMotor.class, "1150 RPM intake");
+        leftFlywheel = hardwareMap.get(DcMotor.class, "6000 RPM motor");
+        rightFlywheel = hardwareMap.get(DcMotor.class, "6000 RPM motor flywheel right");
+        intake1150 = hardwareMap.get(DcMotor.class, "1150 RPM intake");
 
-        finalIntakeLeft  = hardwareMap.get(Servo.class, "FinalIntakeLeftDS");
-        finalIntakeRight = hardwareMap.get(Servo.class, "finalIntakeServo");
-        finalIntakeRight.setDirection(Servo.Direction.REVERSE);
+        intake1150.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         leftFlywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         intake1150.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        intake1150.setPower(0);
+
+        finalIntakeLeft = hardwareMap.get(Servo.class, "FinalIntakeLeftDS");
+        finalIntakeRight = hardwareMap.get(Servo.class, "finalIntakeServo");
+        finalIntakeRight.setDirection(Servo.Direction.REVERSE);
+
+        finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+        finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+
         leftFlywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFlywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        intake1150.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        stopFlywheel();
-        intake1150.setPower(0);
-
-        finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
-        finalIntakeRight.setPosition(SERVO_STOP_POSITION);
 
         telemetry.addLine("14 POOPS ON EILEEN");
 
@@ -122,37 +129,50 @@ public class BlueStructureStartingPoint2 extends OpMode {
     }
 
     /* ================= PATH BUILDING ================= */
-
     private void buildPaths() {
 
         pathShoot1 = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
-                .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
+                .setLinearHeadingInterpolation(
+                        startPose.getHeading(),
+                        shootPose.getHeading()
+                )
                 .build();
 
         pathCollect1 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, collect1))
-                .setLinearHeadingInterpolation(shootPose.getHeading(), collect1.getHeading())
+                .setLinearHeadingInterpolation(
+                        shootPose.getHeading(),
+                        collect1.getHeading()
+                )
                 .build();
 
         pathCollect2 = follower.pathBuilder()
                 .addPath(new BezierLine(collect1, collect2))
-                .setLinearHeadingInterpolation(collect1.getHeading(), collect2.getHeading())
+                .setLinearHeadingInterpolation(
+                        collect1.getHeading(),
+                        collect2.getHeading()
+                )
                 .build();
 
         pathReturnShoot = follower.pathBuilder()
                 .addPath(new BezierLine(collect2, shootPose2))
-                .setLinearHeadingInterpolation(collect2.getHeading(), shootPose2.getHeading())
+                .setLinearHeadingInterpolation(
+                        collect2.getHeading(),
+                        shootPose2.getHeading()
+                )
                 .build();
 
         pathDriveToEnd = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose2, endPose))
-                .setLinearHeadingInterpolation(shootPose2.getHeading(), endPose.getHeading())
+                .setLinearHeadingInterpolation(
+                        shootPose2.getHeading(),
+                        endPose.getHeading()
+                )
                 .build();
     }
 
     /* ================= LOOP ================= */
-
     @Override
     public void loop() {
         follower.update();
@@ -160,7 +180,6 @@ public class BlueStructureStartingPoint2 extends OpMode {
     }
 
     /* ================= STATE MACHINE ================= */
-
     private void updateStateMachine() {
 
         switch (state) {
@@ -177,35 +196,43 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 break;
 
             case SHOOT_1:
-                finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
-                finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+                double t = stateTimer.getElapsedTimeSeconds();
 
-                boolean ready1 = updateFlywheelRPM();
+                leftFlywheel.setPower(leftFlywheelPower);
+                rightFlywheel.setPower(rightFlywheelPower);
 
-                if (ready1 && stateTimer.getElapsedTimeSeconds() > 0.25) {
+                if (t > flywheelRampUpDurationSeconds) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
-                if (ready1 && stateTimer.getElapsedTimeSeconds() > 1.25) {
+                if (t > flywheelRampUpDurationSeconds + 1.0) {
+                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+                }
+
+                if (t > flywheelRampUpDurationSeconds + 2.0) {
                     intake1150.setPower(-1);
                 }
 
-                if (ready1 && stateTimer.getElapsedTimeSeconds() > 2.25) {
+                if (t > flywheelRampUpDurationSeconds + 3.0) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
-                if (ready1 && stateTimer.getElapsedTimeSeconds() > 3.25) {
-                    stopFlywheel();
+                if (t > flywheelRampUpDurationSeconds + 4.0) {
+                    leftFlywheel.setPower(0);
+                    rightFlywheel.setPower(0);
                     intake1150.setPower(0);
                     transition(State.DRIVE_TO_COLLECT);
                 }
                 break;
 
             case DRIVE_TO_COLLECT:
-                follower.followPath(pathCollect1, true);
-                transition(State.COLLECT_1);
+                if (!follower.isBusy()) {
+                    follower.followPath(pathCollect1, true);
+                    transition(State.COLLECT_1);
+                }
                 break;
 
             case COLLECT_1:
@@ -221,8 +248,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
             case COLLECT_2:
                 if (!follower.isBusy()) {
-                    intake1150.setPower(0);
                     follower.followPath(pathReturnShoot, true);
+                    intake1150.setPower(0);
                     transition(State.DRIVE_BACK_TO_SHOOT_2);
                 }
                 break;
@@ -234,27 +261,36 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 break;
 
             case SHOOT_2:
+                double t2 = stateTimer.getElapsedTimeSeconds();
+
                 finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                 finalIntakeRight.setPosition(SERVO_STOP_POSITION);
 
-                boolean ready2 = updateFlywheelRPM();
+                leftFlywheel.setPower(leftFlywheelPower);
+                rightFlywheel.setPower(rightFlywheelPower);
 
-                if (ready2 && stateTimer.getElapsedTimeSeconds() > 0.25) {
+                if (t2 > 3.0) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
-                if (ready2 && stateTimer.getElapsedTimeSeconds() > 1.25) {
+                if (t2 > 4.0) {
+                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
+                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+                }
+
+                if (t2 > 5.0) {
                     intake1150.setPower(-1);
                 }
 
-                if (ready2 && stateTimer.getElapsedTimeSeconds() > 2.25) {
+                if (t2 > 6.0) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
-                if (ready2 && stateTimer.getElapsedTimeSeconds() > 3.75) {
-                    stopFlywheel();
+                if (t2 > 9.0) {
+                    leftFlywheel.setPower(0);
+                    rightFlywheel.setPower(0);
                     intake1150.setPower(0);
                     follower.followPath(pathDriveToEnd, true);
                     transition(State.DRIVE_OUTSIDE);
@@ -263,13 +299,15 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
             case DRIVE_OUTSIDE:
                 if (!follower.isBusy()) {
+                    follower.breakFollowing();
                     transition(State.FINISHED);
                 }
                 break;
 
             case FINISHED:
-                stopFlywheel();
                 intake1150.setPower(0);
+                leftFlywheel.setPower(0);
+                rightFlywheel.setPower(0);
                 finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                 finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                 break;
@@ -277,31 +315,6 @@ public class BlueStructureStartingPoint2 extends OpMode {
     }
 
     /* ================= HELPERS ================= */
-
-    private boolean updateFlywheelRPM() {
-        double leftRPM  = Math.abs((leftFlywheel.getVelocity() / TICKS_PER_REV) * 60.0);
-        double rightRPM = Math.abs((rightFlywheel.getVelocity() / TICKS_PER_REV) * 60.0);
-        double avgRPM   = (leftRPM + rightRPM) / 2.0;
-
-        double error = TARGET_RPM - avgRPM;
-        flywheelPower += error * kP;
-        flywheelPower = Math.max(0.0, Math.min(1.0, flywheelPower));
-
-        leftFlywheel.setPower(-flywheelPower);
-        rightFlywheel.setPower(flywheelPower);
-
-        telemetry.addData("Target RPM", TARGET_RPM);
-        telemetry.addData("RPM", avgRPM);
-        telemetry.addData("Power", flywheelPower);
-
-        return Math.abs(error) <= RPM_TOLERANCE;
-    }
-
-    private void stopFlywheel() {
-        leftFlywheel.setPower(0);
-        rightFlywheel.setPower(0);
-    }
-
     private void transition(State next) {
         state = next;
         stateTimer.resetTimer();
