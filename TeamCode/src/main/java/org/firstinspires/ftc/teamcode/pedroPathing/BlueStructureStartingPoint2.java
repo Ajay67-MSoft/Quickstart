@@ -28,13 +28,17 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private Servo finalIntakeLeft;
     private Servo finalIntakeRight;
 
-    private double leftFlywheelPower = -0.58 + 0.05;   // original was 0.58
-    private double rightFlywheelPower = 0.5 - 0.05;    // original was 0.5
-    private double flywheelRampUpDurationSeconds = 3.0;
+    /* ================= FLYWHEEL CONSTANTS ================= */
+    private static final double TICKS_PER_REV = 28.0;
+    private static final double TARGET_RPM = 2000.0;
 
     /* ================= PEDRO ================= */
     private Follower follower;
     private Timer stateTimer;
+
+    /* ================= RPM TRACKING ================= */
+    private int lastFlywheelPosition = 0;
+    private double lastFlywheelTime = 0.0;
 
     /* ================= STATES ================= */
     public enum State {
@@ -52,27 +56,11 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private State state;
 
     /* ================= POSES ================= */
-    private final Pose startPose = new Pose(
-            24.746955345060893,
-            128.60622462787552,
-            Math.toRadians(143)
-    );
-
-    private final Pose shootPose = new Pose(
-            51.4424898511502,
-            104.83355886332882,
-            Math.toRadians(143)
-    );
-
+    private final Pose startPose = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143));
+    private final Pose shootPose = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(143));
     private final Pose collect1 = new Pose(44.4, 84, Math.toRadians(180));
     private final Pose collect2 = new Pose(29, 84, Math.toRadians(180));
-
-    private final Pose shootPose2 = new Pose(
-            51.4424898511502,
-            104.83355886332882,
-            Math.toRadians(138)
-    );
-
+    private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(138));
     private final Pose endPose = new Pose(44.4, 72, Math.toRadians(180));
 
     /* ================= PATHS ================= */
@@ -83,8 +71,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private PathChain pathDriveToEnd;
 
     /* ================= SERVO POSITIONS ================= */
-    private static final double SERVO_FEED_POSITION = 0.0;
-    private static final double SERVO_STOP_POSITION = 20;
+    private final double SERVO_FEED_POSITION = 0.0;
+    private final double SERVO_STOP_POSITION = 20;
 
     /* ================= INIT ================= */
     @Override
@@ -117,8 +105,12 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
         leftFlywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFlywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         leftFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        lastFlywheelPosition = leftFlywheel.getCurrentPosition();
+        lastFlywheelTime = stateTimer.getElapsedTimeSeconds();
 
         telemetry.addLine("14 POOPS ON EILEEN");
 
@@ -133,42 +125,27 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
         pathShoot1 = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
-                .setLinearHeadingInterpolation(
-                        startPose.getHeading(),
-                        shootPose.getHeading()
-                )
+                .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
                 .build();
 
         pathCollect1 = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, collect1))
-                .setLinearHeadingInterpolation(
-                        shootPose.getHeading(),
-                        collect1.getHeading()
-                )
+                .setLinearHeadingInterpolation(shootPose.getHeading(), collect1.getHeading())
                 .build();
 
         pathCollect2 = follower.pathBuilder()
                 .addPath(new BezierLine(collect1, collect2))
-                .setLinearHeadingInterpolation(
-                        collect1.getHeading(),
-                        collect2.getHeading()
-                )
+                .setLinearHeadingInterpolation(collect1.getHeading(), collect2.getHeading())
                 .build();
 
         pathReturnShoot = follower.pathBuilder()
                 .addPath(new BezierLine(collect2, shootPose2))
-                .setLinearHeadingInterpolation(
-                        collect2.getHeading(),
-                        shootPose2.getHeading()
-                )
+                .setLinearHeadingInterpolation(collect2.getHeading(), shootPose2.getHeading())
                 .build();
 
         pathDriveToEnd = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose2, endPose))
-                .setLinearHeadingInterpolation(
-                        shootPose2.getHeading(),
-                        endPose.getHeading()
-                )
+                .setLinearHeadingInterpolation(shootPose2.getHeading(), endPose.getHeading())
                 .build();
     }
 
@@ -181,6 +158,12 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     /* ================= STATE MACHINE ================= */
     private void updateStateMachine() {
+
+        double currentRPM = getFlywheelRPM(leftFlywheel);
+
+        telemetry.addData("Flywheel RPM", "%.1f", currentRPM);
+        telemetry.addData("Target RPM", TARGET_RPM);
+        telemetry.update();
 
         switch (state) {
 
@@ -196,35 +179,40 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 break;
 
             case SHOOT_1:
+            case SHOOT_2:
+                runFlywheelAtTargetRPM();
+
                 double t = stateTimer.getElapsedTimeSeconds();
 
-                leftFlywheel.setPower(leftFlywheelPower);
-                rightFlywheel.setPower(rightFlywheelPower);
-
-                if (t > flywheelRampUpDurationSeconds) {
+                if (t > 3.0) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
-                if (t > flywheelRampUpDurationSeconds + 1.0) {
+                if (t > 4.0) {
                     finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                     finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                 }
 
-                if (t > flywheelRampUpDurationSeconds + 2.0) {
+                if (t > 5.0) {
                     intake1150.setPower(-1);
                 }
 
-                if (t > flywheelRampUpDurationSeconds + 3.0) {
+                if (t > 6.0) {
                     finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
                     finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 }
 
-                if (t > flywheelRampUpDurationSeconds + 4.0) {
-                    leftFlywheel.setPower(0);
-                    rightFlywheel.setPower(0);
+                if (t > 9.0) {
+                    stopFlywheel();
                     intake1150.setPower(0);
-                    transition(State.DRIVE_TO_COLLECT);
+
+                    if (state == State.SHOOT_1) {
+                        transition(State.DRIVE_TO_COLLECT);
+                    } else {
+                        follower.followPath(pathDriveToEnd, true);
+                        transition(State.DRIVE_OUTSIDE);
+                    }
                 }
                 break;
 
@@ -236,10 +224,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 break;
 
             case COLLECT_1:
-                finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
-                finalIntakeRight.setPosition(SERVO_FEED_POSITION);
                 intake1150.setPower(-1);
-
                 if (!follower.isBusy()) {
                     follower.followPath(pathCollect2, true);
                     transition(State.COLLECT_2);
@@ -260,58 +245,51 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 }
                 break;
 
-            case SHOOT_2:
-                double t2 = stateTimer.getElapsedTimeSeconds();
-
-                finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
-                finalIntakeRight.setPosition(SERVO_STOP_POSITION);
-
-                leftFlywheel.setPower(leftFlywheelPower);
-                rightFlywheel.setPower(rightFlywheelPower);
-
-                if (t2 > 3.0) {
-                    finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
-                    finalIntakeRight.setPosition(SERVO_FEED_POSITION);
-                }
-
-                if (t2 > 4.0) {
-                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
-                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
-                }
-
-                if (t2 > 5.0) {
-                    intake1150.setPower(-1);
-                }
-
-                if (t2 > 6.0) {
-                    finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
-                    finalIntakeRight.setPosition(SERVO_FEED_POSITION);
-                }
-
-                if (t2 > 9.0) {
-                    leftFlywheel.setPower(0);
-                    rightFlywheel.setPower(0);
-                    intake1150.setPower(0);
-                    follower.followPath(pathDriveToEnd, true);
-                    transition(State.DRIVE_OUTSIDE);
-                }
-                break;
-
             case DRIVE_OUTSIDE:
                 if (!follower.isBusy()) {
-                    follower.breakFollowing();
                     transition(State.FINISHED);
                 }
                 break;
 
             case FINISHED:
+                stopFlywheel();
                 intake1150.setPower(0);
-                leftFlywheel.setPower(0);
-                rightFlywheel.setPower(0);
                 finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
                 finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                 break;
         }
+    }
+
+    /* ================= FLYWHEEL CONTROL ================= */
+    private void runFlywheelAtTargetRPM() {
+        // 6000 RPM motor → ~0.33 power for 2000 RPM
+        double power = TARGET_RPM / 6000.0;
+        leftFlywheel.setPower(power);
+        rightFlywheel.setPower(power);
+    }
+
+    private void stopFlywheel() {
+        leftFlywheel.setPower(0);
+        rightFlywheel.setPower(0);
+    }
+
+    /* ================= RPM CALC ================= */
+    private double getFlywheelRPM(DcMotor motor) {
+
+        double currentTime = stateTimer.getElapsedTimeSeconds();
+        int currentPosition = motor.getCurrentPosition();
+
+        double deltaTime = currentTime - lastFlywheelTime;
+        int deltaTicks = currentPosition - lastFlywheelPosition;
+
+        if (deltaTime <= 0) return 0;
+
+        double rpm = ((deltaTicks / TICKS_PER_REV) / deltaTime) * 60.0;
+
+        lastFlywheelTime = currentTime;
+        lastFlywheelPosition = currentPosition;
+
+        return rpm;
     }
 
     /* ================= HELPERS ================= */
