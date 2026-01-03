@@ -320,6 +320,7 @@ public class REDstructureStartingPoint extends OpMode {
                     finalIntakeRight.setPosition(SERVO_STOP_POSITION);
                     // stop first intake servo
                     intake1150.setPower(0);
+                    follower.followPath(pathDriveToEnd, true);
                     transition(State.DRIVE_OUTSIDE);
                 }
                 break;
