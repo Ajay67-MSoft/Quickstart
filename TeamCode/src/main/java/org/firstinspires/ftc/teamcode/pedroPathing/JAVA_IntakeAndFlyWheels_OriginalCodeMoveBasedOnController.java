@@ -188,13 +188,6 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
                     _6000RPMmotor.setPower(0);
                     _6000RPMmotorflywheelright.setPower(0);
                 }
-                if (gamepad1.y) {
-                    _6000RPMmotor.setPower(-0.635);
-                    _6000RPMmotorflywheelright.setPower(0.635);
-                } else {
-                    _6000RPMmotor.setPower(0);
-                    _6000RPMmotorflywheelright.setPower(0);
-                }
                 if (gamepad1.right_bumper) {
                     _6000RPMmotor.setPower(0.635);
                     _6000RPMmotorflywheelright.setPower(-0.635);
