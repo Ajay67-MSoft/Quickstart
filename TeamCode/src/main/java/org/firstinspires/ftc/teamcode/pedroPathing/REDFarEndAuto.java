@@ -55,7 +55,7 @@ public class REDFarEndAuto extends OpMode {
 
     private final Pose startPose = new Pose(88, 8.2, Math.toRadians(90));
     private final Pose shootPose = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(57.5));
-    private final Pose endPose = new Pose(88, 8.2, Math.toRadians(90));
+    private final Pose endPose = new Pose(88, 56, Math.toRadians(90));
 
     /* ================= PATHS ================= */
 

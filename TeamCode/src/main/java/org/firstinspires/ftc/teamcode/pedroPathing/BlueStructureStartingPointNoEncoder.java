@@ -112,7 +112,7 @@ public class BlueStructureStartingPointNoEncoder extends OpMode {
         finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
         finalIntakeRight.setPosition(SERVO_STOP_POSITION);
 
-        telemetry.addLine("14 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
+        telemetry.addLine("16 POOPS ON EILEEN"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
 
         buildPaths();
 

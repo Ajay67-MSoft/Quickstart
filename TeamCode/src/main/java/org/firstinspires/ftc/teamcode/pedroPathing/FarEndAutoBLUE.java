@@ -54,7 +54,7 @@ public class FarEndAutoBLUE extends OpMode {
 
     private final Pose startPose = new Pose(56, 8.2, Math.toRadians(90));
     private final Pose shootPose = new Pose(60.019769357495875, 15.182866556836899, Math.toRadians(122.5));
-    private final Pose endPose = new Pose(56, 8.2, Math.toRadians(90));
+    private final Pose endPose = new Pose(56, 56, Math.toRadians(90));
 
     /* ================= PATHS ================= */
 
