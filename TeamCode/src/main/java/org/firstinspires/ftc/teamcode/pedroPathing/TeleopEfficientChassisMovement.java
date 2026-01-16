@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "TeleopEfficientChassisMovement")
-public class TeleopEfficientChassisMovement extends LinearOpMode {
+@TeleOp(name = "OriginalCodeMoveBasedOnController6 (Blocks to Java)")
+public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends LinearOpMode {
 
     private Servo FinalIntakeLeftDS;
     private Servo finalIntakeServo;
@@ -41,23 +41,25 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
         _6000RPMmotorflywheelright = hardwareMap.get(DcMotor.class, "6000 RPM motor flywheel right");
         frontRightWheelDS.setDirection(DcMotorEx.Direction.REVERSE);
         backRightWheelDS.setDirection(DcMotorEx.Direction.REVERSE);
-        double y, x, rx;
 
         // Put initialization blocks here.
         FinalIntakeLeftDS.setPosition(20);
         finalIntakeServo.setDirection(Servo.Direction.REVERSE);
         finalIntakeServo.setPosition(20);
+        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        PIDFCoefficients pidfNew = new PIDFCoefficients(10.0, 3.0, 0.0, 12.0);
+        motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
         waitForStart();
         if (opModeIsActive()) {
             // Put run blocks here.
             while (opModeIsActive()) {
-                y = -gamepad1.left_stick_y;
+                y = gamepad1.left_stick_y;
                 x = gamepad1.left_stick_x;
                 rx = gamepad1.right_stick_x;
-                frontLeftWheelDS.setPower(y + x + rx);
-                backLeftWheelDS.setPower(y - x + rx);
-                frontRightWheelDS.setPower(y - x - rx);
-                backRightWheelDS.setPower(y + x - rx);
+                leftFront.setPower(y + x + rx);
+                leftBack.setPower(y - x + rx);
+                rightFront.setPower(y - x - rx);
+                rightBack.setPower(y + x - rx);
                 // Put loop blocks here.
                 if (gamepad1.left_bumper) {
                     FinalIntakeLeftDS.setPosition(0);
@@ -106,6 +108,8 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                     _6000RPMmotor.setPower(0.635);
                     _6000RPMmotorflywheelright.setPower(-0.635);
                 }
+                PIDFCoefficients pidfCurrent = motor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+                telemetry.addData("P", pidfCurrent.p);
                 telemetry.update();
             }
         }
