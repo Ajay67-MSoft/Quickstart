@@ -116,7 +116,7 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                 telemetry.addData("shoot:", shoot);
                 telemetry.addData("Left Flywheel RPM: ", _6000RPMmotor.getVelocity()); // peak 1800, avg 1500
                 telemetry.addData("Right Flywheel RPM: ", _6000RPMmotorflywheelright.getVelocity()); // peak 1800, avg 1500
-                telemetry.addLine("v1");
+                telemetry.addLine("v2");
                 telemetry.update();
             }
         }
