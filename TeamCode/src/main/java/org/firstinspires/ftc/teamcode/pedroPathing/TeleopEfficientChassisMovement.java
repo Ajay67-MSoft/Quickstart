@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name = "OriginalCodeMoveBasedOnController6 (Blocks to Java)")
 public class TeleopEfficientChassisMovement extends LinearOpMode {
@@ -19,17 +20,16 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
     private DcMotor _1150RPMintake;
     private DcMotorEx _6000RPMmotor;
     private DcMotorEx _6000RPMmotorflywheelright;
+    private double x, y, rx;
+    private boolean shoot = false; //double t = stateTimer.getElapsedTimeSeconds();
+    private ElapsedTime timer = new ElapsedTime();
+    private int shootTime = 400;
 
     /**
      * idk man figure it out
      */
     @Override
     public void runOpMode() {
-        float frontLeftPower;
-        float backLeftPower;
-        float frontRightPower;
-        float backRightPower;
-        double x, y, rx;
 
         FinalIntakeLeftDS = hardwareMap.get(Servo.class, "FinalIntakeLeftDS");
         finalIntakeServo = hardwareMap.get(Servo.class, "finalIntakeServo");
@@ -64,66 +64,49 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                 frontRightWheelDS.setPower(y - x - rx);
                 backRightWheelDS.setPower(y + x - rx);
                 // Put loop blocks here.
-                if (gamepad1.left_bumper) {
-                    FinalIntakeLeftDS.setPosition(0);
-                } else {
-                    FinalIntakeLeftDS.setPosition(20);
-                }
-                if (gamepad1.left_bumper) {
+
+              	/*
+                shoot logic:
+                1. charge flywheels
+                2. set final intake servo to 0
+                (shoots 2 balls)
+                3. set final intake servo to 20
+                3. continously spin _1150RPMintake
+                4. set final intake servo to 0
+                (shoots last ball)
+                5. stop _1150RPMintake and set final intake servo to 20
+
+                note that the final intake servo takes ~1000ms to rotate between 20 and 0
+                */
+
+                if (gamepad1.left_bumper && shoot == true) {
                     finalIntakeServo.setPosition(0);
                 } else {
                     finalIntakeServo.setPosition(20);
                 }
 
-                if (gamepad1.a) {
-                    frontLeftPower = 1;
-                    backLeftPower = 1;
-                    frontRightPower = 1;
-                    backRightPower = 1;
-                    frontLeftWheelDS.setPower(frontLeftPower);
-                    backLeftWheelDS.setPower(backLeftPower);
-                    frontRightWheelDS.setPower(frontRightPower);
-                    backRightWheelDS.setPower(backRightPower);
-                }
-                if (gamepad1.b) {
-                    frontLeftPower = 1;
-                    backLeftPower = 1;
-                    frontRightPower = 1;
-                    backRightPower = 1;
-                    frontLeftWheelDS.setPower(-frontLeftPower);
-                    backLeftWheelDS.setPower(-backLeftPower);
-                    frontRightWheelDS.setPower(-frontRightPower);
-                    backRightWheelDS.setPower(-backRightPower);
-                }
-                if (gamepad1.x) {
+                if (gamepad1.right_bumper) {
                     _1150RPMintake.setPower(-1);
                 } else {
                     _1150RPMintake.setPower(0);
                 }
-                if (gamepad1.dpad_up) {
-                    // run front left motor
-                    frontLeftWheelDS.setPower(1);
-                }
-                if (gamepad1.dpad_left) {
-                    // run front left motor
-                    backLeftWheelDS.setPower(1);
-                }
-                if (gamepad1.dpad_right) {
-                    // run front left motor
-                    frontRightWheelDS.setPower(1);
-                }
-                if (gamepad1.dpad_down) {
-                    // run front left motor
-                    backRightWheelDS.setPower(1);
-                }
+
                 if (gamepad1.y) {
-                    _6000RPMmotor.setPower(-0.635);
-                    _6000RPMmotorflywheelright.setPower(0.635);
-                } else {
+                    _6000RPMmotor.setPower(-1);
+                    _6000RPMmotorflywheelright.setPower(1);
+                    // auto detect rpm
+                    if(_6000RPMmotor.getVelocity() >= 1500) {
+                        shoot = true;
+                    } else {
+                        shoot = false;
+                    }
+                }
+                else {
                     _6000RPMmotor.setPower(0);
                     _6000RPMmotorflywheelright.setPower(0);
+                    shoot = false;
                 }
-                if (gamepad1.right_bumper) {
+                if (gamepad1.x) {
                     _6000RPMmotor.setPower(0.635);
                     _6000RPMmotorflywheelright.setPower(-0.635);
                 }
@@ -131,10 +114,10 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                 PIDFCoefficients pidfCurrent2 = _6000RPMmotorflywheelright.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
                 telemetry.addData("P", pidfCurrent.p);
                 telemetry.addData("P2", pidfCurrent2.p);
-                telemetry.addData("Left Flywheel RPM: ", _6000RPMmotor.getVelocity());
-                telemetry.addData("Right Flywheel RPM: ", _6000RPMmotorflywheelright.getVelocity());
+                telemetry.addData("Left Flywheel RPM: ", _6000RPMmotor.getVelocity()); // peak 1800, avg 1500
+                telemetry.addData("Right Flywheel RPM: ", _6000RPMmotorflywheelright.getVelocity()); // peak 1800, avg 1500
                 telemetry.update();
+                }
             }
         }
     }
-}
