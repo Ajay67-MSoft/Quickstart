@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -8,8 +10,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name = "TeleopEfficientChassisMovement")
-public class TeleopEfficientChassisMovement extends LinearOpMode {
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+
+@TeleOp(name = "AutoShootTest")
+public class AutoShootTest extends LinearOpMode {
 
     private Servo FinalIntakeLeftDS;
     private Servo finalIntakeServo;
@@ -20,10 +24,18 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
     private DcMotor _1150RPMintake;
     private DcMotorEx _6000RPMmotor;
     private DcMotorEx _6000RPMmotorflywheelright;
+    private Limelight3A limelight;
+
     private double x, y, rx;
     private boolean shoot = false; //double t = stateTimer.getElapsedTimeSeconds();
     private ElapsedTime timer = new ElapsedTime();
+
     private int shootTime = 400;
+
+    private int shootGap = 2000;
+    private int shootFirst = 500;
+    private int prepareSecond = 1000;
+    private int shootSecond = 1500;
 
     /**
      * idk man figure it out
@@ -39,11 +51,16 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
         backRightWheelDS = hardwareMap.get(DcMotor.class, "backRightWheelDS");
         _1150RPMintake = hardwareMap.get(DcMotor.class, "1150 RPM intake");
         _6000RPMmotor = hardwareMap.get(DcMotorEx.class, "6000 RPM motor");
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
         _6000RPMmotorflywheelright = hardwareMap.get(DcMotorEx.class, "6000 RPM motor flywheel right");
         frontRightWheelDS.setDirection(DcMotorEx.Direction.REVERSE);
         backRightWheelDS.setDirection(DcMotorEx.Direction.REVERSE);
 
         // Put initialization blocks here.
+        telemetry.setMsTransmissionInterval(11);
+        limelight.pipelineSwitch(0);
+        limelight.start();
+
         FinalIntakeLeftDS.setPosition(20);
         finalIntakeServo.setDirection(Servo.Direction.REVERSE);
         finalIntakeServo.setPosition(20);
@@ -77,28 +94,64 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                 5. stop _1150RPMintake and set final intake servo to 20
 
                 note that the final intake servo takes ~1000ms to rotate between 20 and 0
+                when moving forward, left flywheel is negative and right flywheel is pos
                 */
 
-                if (gamepad1.left_bumper && shoot == true) {
+                if (gamepad1.left_bumper) {
                     finalIntakeServo.setPosition(0);
-                } else {
+                    FinalIntakeLeftDS.setPosition(0);
+                } else if (shoot == false) {
                     finalIntakeServo.setPosition(20);
+                    FinalIntakeLeftDS.setPosition(20);
                 }
+
+                if (shoot) {
+                    LLResult result = limelight.getLatestResult();
+                    if (result != null) {
+                        if (result.isValid()) {
+                            Pose3D botpose = result.getBotpose();
+                            telemetry.addData("tx", result.getTx());
+                            telemetry.addData("ty", result.getTy());
+                            telemetry.addData("Botpose", botpose.toString());
+                        }
+                    }
+                    else if (timer.milliseconds() < shootFirst) {
+                        finalIntakeServo.setPosition(0);
+                        FinalIntakeLeftDS.setPosition(0);
+                    } else if (timer.milliseconds() < prepareSecond) {
+                        finalIntakeServo.setPosition(20);
+                        FinalIntakeLeftDS.setPosition(20);
+                        _1150RPMintake.setPower(-1);
+                    } else if (timer.milliseconds() < shootSecond && Math.abs(_6000RPMmotor.getVelocity()) >= 1500) {
+                        finalIntakeServo.setPosition(0);
+                        finalIntakeServo.setPosition(0);
+                        _1150RPMintake.setPower(0);
+                    } else {
+                        finalIntakeServo.setPosition(20);
+                        FinalIntakeLeftDS.setPosition(20);
+                        _1150RPMintake.setPower(0);
+                        shoot = false;
+                    }
+                }
+
 
                 if (gamepad1.right_bumper) {
                     _1150RPMintake.setPower(-1);
-                } else {
+                }
+                else if (gamepad1.a) {
+                    _1150RPMintake.setPower(1);
+                }
+                else {
                     _1150RPMintake.setPower(0);
                 }
 
                 if (gamepad1.y) {
-                    _6000RPMmotor.setVelocity(-1800);
-                    _6000RPMmotorflywheelright.setVelocity(1800);
+                    _6000RPMmotor.setVelocity(-1500);
+                    _6000RPMmotorflywheelright.setPower(1);
                     // auto detect rpm
-                    if (Math.abs(_6000RPMmotor.getVelocity()) >= 1500 && Math.abs(_6000RPMmotorflywheelright.getVelocity()) >= 1500) {
+                    if (Math.abs(_6000RPMmotor.getVelocity()) >= 1500 && shoot == false && timer.milliseconds() > shootGap) {
                         shoot = true;
-                    } else {
-                        shoot = false;
+                        timer.reset();
                     }
                 } else {
                     _6000RPMmotor.setPower(0);
@@ -116,7 +169,6 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                 telemetry.addData("shoot:", shoot);
                 telemetry.addData("Left Flywheel RPM: ", _6000RPMmotor.getVelocity()); // peak 1800, avg 1500
                 telemetry.addData("Right Flywheel RPM: ", _6000RPMmotorflywheelright.getVelocity()); // peak 1800, avg 1500
-                telemetry.addLine("v1");
                 telemetry.update();
             }
         }
