@@ -57,8 +57,8 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
             // Put run blocks here.
             while (opModeIsActive()) {
                 y = gamepad1.left_stick_y;
-                x = gamepad1.left_stick_x;
-                rx = gamepad1.right_stick_x;
+                x = -gamepad1.left_stick_x;
+                rx = -gamepad1.right_stick_x;
                 frontLeftWheelDS.setPower(y + x + rx);
                 backLeftWheelDS.setPower(y - x + rx);
                 frontRightWheelDS.setPower(y - x - rx);
