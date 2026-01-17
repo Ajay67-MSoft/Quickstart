@@ -95,13 +95,12 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                     _6000RPMmotor.setPower(-1);
                     _6000RPMmotorflywheelright.setPower(1);
                     // auto detect rpm
-                    if(_6000RPMmotor.getVelocity() >= 1500) {
+                    if (_6000RPMmotor.getVelocity() >= 1500) {
                         shoot = true;
                     } else {
                         shoot = false;
                     }
-                }
-                else {
+                } else {
                     _6000RPMmotor.setPower(0);
                     _6000RPMmotorflywheelright.setPower(0);
                     shoot = false;
@@ -114,10 +113,11 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                 PIDFCoefficients pidfCurrent2 = _6000RPMmotorflywheelright.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
                 telemetry.addData("P", pidfCurrent.p);
                 telemetry.addData("P2", pidfCurrent2.p);
+                telemetry.addData("shoot:", shoot);
                 telemetry.addData("Left Flywheel RPM: ", _6000RPMmotor.getVelocity()); // peak 1800, avg 1500
                 telemetry.addData("Right Flywheel RPM: ", _6000RPMmotorflywheelright.getVelocity()); // peak 1800, avg 1500
                 telemetry.update();
-                }
             }
         }
     }
+}
