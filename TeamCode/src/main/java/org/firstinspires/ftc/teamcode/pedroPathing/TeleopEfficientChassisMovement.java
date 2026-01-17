@@ -131,6 +131,8 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                 PIDFCoefficients pidfCurrent2 = _6000RPMmotorflywheelright.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
                 telemetry.addData("P", pidfCurrent.p);
                 telemetry.addData("P2", pidfCurrent2.p);
+                telemetry.addData("Left Flywheel RPM: ", _6000RPMmotor.getVelocity());
+                telemetry.addData("Right Flywheel RPM: ", _6000RPMmotorflywheelright.getVelocity());
                 telemetry.update();
             }
         }
