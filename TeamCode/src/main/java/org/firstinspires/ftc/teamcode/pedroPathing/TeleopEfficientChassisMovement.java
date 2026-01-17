@@ -5,9 +5,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 @TeleOp(name = "OriginalCodeMoveBasedOnController6 (Blocks to Java)")
-public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends LinearOpMode {
+public class TeleopEfficientChassisMovement extends LinearOpMode {
 
     private Servo FinalIntakeLeftDS;
     private Servo finalIntakeServo;
@@ -16,8 +17,8 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
     private DcMotor frontRightWheelDS;
     private DcMotor backRightWheelDS;
     private DcMotor _1150RPMintake;
-    private DcMotor _6000RPMmotor;
-    private DcMotor _6000RPMmotorflywheelright;
+    private DcMotorEx _6000RPMmotor;
+    private DcMotorEx _6000RPMmotorflywheelright;
 
     /**
      * idk man figure it out
@@ -25,10 +26,10 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
     @Override
     public void runOpMode() {
         float frontLeftPower;
-        float LY;
         float backLeftPower;
         float frontRightPower;
         float backRightPower;
+        double x, y, rx;
 
         FinalIntakeLeftDS = hardwareMap.get(Servo.class, "FinalIntakeLeftDS");
         finalIntakeServo = hardwareMap.get(Servo.class, "finalIntakeServo");
@@ -37,8 +38,8 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
         frontRightWheelDS = hardwareMap.get(DcMotor.class, "frontRightWheelDS");
         backRightWheelDS = hardwareMap.get(DcMotor.class, "backRightWheelDS");
         _1150RPMintake = hardwareMap.get(DcMotor.class, "1150 RPM intake");
-        _6000RPMmotor = hardwareMap.get(DcMotor.class, "6000 RPM motor");
-        _6000RPMmotorflywheelright = hardwareMap.get(DcMotor.class, "6000 RPM motor flywheel right");
+        _6000RPMmotor = hardwareMap.get(DcMotorEx.class, "6000 RPM motor");
+        _6000RPMmotorflywheelright = hardwareMap.get(DcMotorEx.class, "6000 RPM motor flywheel right");
         frontRightWheelDS.setDirection(DcMotorEx.Direction.REVERSE);
         backRightWheelDS.setDirection(DcMotorEx.Direction.REVERSE);
 
@@ -46,9 +47,11 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
         FinalIntakeLeftDS.setPosition(20);
         finalIntakeServo.setDirection(Servo.Direction.REVERSE);
         finalIntakeServo.setPosition(20);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        _6000RPMmotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        _6000RPMmotorflywheelright.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         PIDFCoefficients pidfNew = new PIDFCoefficients(10.0, 3.0, 0.0, 12.0);
-        motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
+        _6000RPMmotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
+        _6000RPMmotorflywheelright.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
         waitForStart();
         if (opModeIsActive()) {
             // Put run blocks here.
@@ -56,10 +59,10 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
                 y = gamepad1.left_stick_y;
                 x = gamepad1.left_stick_x;
                 rx = gamepad1.right_stick_x;
-                leftFront.setPower(y + x + rx);
-                leftBack.setPower(y - x + rx);
-                rightFront.setPower(y - x - rx);
-                rightBack.setPower(y + x - rx);
+                frontLeftWheelDS.setPower(y + x + rx);
+                backLeftWheelDS.setPower(y - x + rx);
+                frontRightWheelDS.setPower(y - x - rx);
+                backRightWheelDS.setPower(y + x - rx);
                 // Put loop blocks here.
                 if (gamepad1.left_bumper) {
                     FinalIntakeLeftDS.setPosition(0);
@@ -108,8 +111,10 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
                     _6000RPMmotor.setPower(0.635);
                     _6000RPMmotorflywheelright.setPower(-0.635);
                 }
-                PIDFCoefficients pidfCurrent = motor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+                PIDFCoefficients pidfCurrent = _6000RPMmotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+                PIDFCoefficients pidfCurrent2 = _6000RPMmotorflywheelright.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
                 telemetry.addData("P", pidfCurrent.p);
+                telemetry.addData("P2", pidfCurrent2.p);
                 telemetry.update();
             }
         }
