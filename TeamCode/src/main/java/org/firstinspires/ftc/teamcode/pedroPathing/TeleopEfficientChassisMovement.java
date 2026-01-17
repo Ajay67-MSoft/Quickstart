@@ -92,10 +92,10 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                 }
 
                 if (gamepad1.y) {
-                    _6000RPMmotor.setPower(-1);
-                    _6000RPMmotorflywheelright.setPower(1);
+                    _6000RPMmotor.setVelocity(-1800);
+                    _6000RPMmotorflywheelright.setVelocity(1800);
                     // auto detect rpm
-                    if (_6000RPMmotor.getVelocity() >= 1500) {
+                    if (Math.abs(_6000RPMmotor.getVelocity()) >= 1500 && Math.abs(_6000RPMmotorflywheelright.getVelocity()) >= 1500) {
                         shoot = true;
                     } else {
                         shoot = false;
