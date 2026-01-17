@@ -60,9 +60,9 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                 x = gamepad1.left_stick_x;
                 rx = gamepad1.right_stick_x;
                 frontLeftWheelDS.setPower(y + x + rx);
-//                backLeftWheelDS.setPower(y - x + rx);
-//                frontRightWheelDS.setPower(y - x - rx);
-//                backRightWheelDS.setPower(y + x - rx);
+                backLeftWheelDS.setPower(y - x + rx);
+                frontRightWheelDS.setPower(y - x - rx);
+                backRightWheelDS.setPower(y + x - rx);
                 // Put loop blocks here.
                 if (gamepad1.left_bumper) {
                     FinalIntakeLeftDS.setPosition(0);
@@ -99,6 +99,22 @@ public class TeleopEfficientChassisMovement extends LinearOpMode {
                     _1150RPMintake.setPower(-1);
                 } else {
                     _1150RPMintake.setPower(0);
+                }
+                if (gamepad1.dpad_up) {
+                    // run front left motor
+                    frontLeftWheelDS.setPower(1);
+                }
+                if (gamepad1.dpad_left) {
+                    // run front left motor
+                    backLeftWheelDS.setPower(1);
+                }
+                if (gamepad1.dpad_right) {
+                    // run front left motor
+                    frontRightWheelDS.setPower(1);
+                }
+                if (gamepad1.dpad_down) {
+                    // run front left motor
+                    backRightWheelDS.setPower(1);
                 }
                 if (gamepad1.y) {
                     _6000RPMmotor.setPower(-0.635);
