@@ -1,9 +1,6 @@
 1. Clean up file program names
-2. Fix jittering robot at end of auto
-3. Add encoder for flywheel stuff in auto AND PUT IN DS CONFIG
-    3a. run with encoder at certain speed, find best speed for shooting, run motor until target RPM is hit
-    3b. two shooting positions to test - far end auto and blue structure auto
-5. Add encoder to teleop program 6 and auto
-6. Change password on DS wifi stuffs and DS itself
-7. Test all auto
+2. Add jittering robot at end of auto
+3. Change password on DS wifi stuffs and DS itself
+4. find center structure offset point relative to the robot by finding the
+angle at which the robot sees the april tag at
 
