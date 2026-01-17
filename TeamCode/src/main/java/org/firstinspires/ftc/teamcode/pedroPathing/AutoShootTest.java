@@ -27,10 +27,20 @@ public class AutoShootTest extends LinearOpMode {
     private Limelight3A limelight;
 
     private double x, y, rx;
+    // --- variables ---
+
+
+
+    private double targetLeftFlywheelVelocity = -1500;
+    private double targetRightFlywheelVelocity = 1500;
+
+
+
+    // --- end ---
     private boolean shoot = false; //double t = stateTimer.getElapsedTimeSeconds();
     private ElapsedTime timer = new ElapsedTime();
 
-    private int shootTime = 400;
+//    private int shootTime = 400;
 
     private int shootGap = 2000;
     private int shootFirst = 500;
@@ -115,7 +125,11 @@ public class AutoShootTest extends LinearOpMode {
                             telemetry.addData("Botpose", botpose.toString());
                         }
                     }
-                    else if (timer.milliseconds() < shootFirst) {
+                    else {
+                        telemetry.addLine("No valid Limelight data !_!");
+                    }
+
+                    if (timer.milliseconds() < shootFirst) {
                         finalIntakeServo.setPosition(0);
                         FinalIntakeLeftDS.setPosition(0);
                     } else if (timer.milliseconds() < prepareSecond) {
@@ -147,7 +161,7 @@ public class AutoShootTest extends LinearOpMode {
 
                 if (gamepad1.y) {
                     _6000RPMmotor.setVelocity(-1500);
-                    _6000RPMmotorflywheelright.setPower(1);
+                    _6000RPMmotorflywheelright.setVelocity(1500);
                     // auto detect rpm
                     if (Math.abs(_6000RPMmotor.getVelocity()) >= 1500 && shoot == false && timer.milliseconds() > shootGap) {
                         shoot = true;
