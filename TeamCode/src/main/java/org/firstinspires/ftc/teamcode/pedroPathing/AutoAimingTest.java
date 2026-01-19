@@ -12,8 +12,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-@TeleOp(name = "AutoShootTest")
-public class AutoShootTest extends LinearOpMode {
+@TeleOp(name = "AutoAdjustTest")
+public class AutoAimingTest extends LinearOpMode {
 
     private Servo FinalIntakeLeftDS;
     private Servo finalIntakeServo;
@@ -46,6 +46,7 @@ public class AutoShootTest extends LinearOpMode {
     private int shootFirst = 500;
     private int prepareSecond = 1000;
     private int shootSecond = 1500;
+    private boolean isAlignedWithCenter;
 
     /**
      * idk man figure it out
@@ -128,6 +129,9 @@ public class AutoShootTest extends LinearOpMode {
                     }
 
                     if (timer.milliseconds() < shootFirst) {
+                        isAlignedWithCenter = true;
+                    }
+                    else if (isAlignedWithCenter == true) {
                         finalIntakeServo.setPosition(0);
                         FinalIntakeLeftDS.setPosition(0);
                     } else if (timer.milliseconds() < prepareSecond) {
@@ -143,6 +147,7 @@ public class AutoShootTest extends LinearOpMode {
                         FinalIntakeLeftDS.setPosition(20);
                         _1150RPMintake.setPower(0);
                         shoot = false;
+                        isAlignedWithCenter = false;
                     }
                 }
 

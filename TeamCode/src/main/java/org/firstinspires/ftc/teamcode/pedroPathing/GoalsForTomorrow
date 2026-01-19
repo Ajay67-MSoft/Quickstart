@@ -3,4 +3,5 @@
 3. Change password on DS wifi stuffs and DS itself
 4. find center structure offset point relative to the robot by finding the
 angle at which the robot sees the april tag at
-
+5. use limelight to give current position in pedropath pose (x, y, heading)
+6. Cl
