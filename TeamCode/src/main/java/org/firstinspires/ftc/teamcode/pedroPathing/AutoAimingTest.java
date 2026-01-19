@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import static com.sun.tools.javac.main.Option.A;
 
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -29,7 +28,6 @@ public class AutoAimingTest extends LinearOpMode {
     private DcMotorEx _6000RPMmotor;
     private DcMotorEx _6000RPMmotorflywheelright;
     private Limelight3A limelight;
-    private GoBildaPinpointDriver pinPoint;
 
     private double x, y, rx;
     // --- variables ---
@@ -59,15 +57,12 @@ public class AutoAimingTest extends LinearOpMode {
     private int IntakeInward = -1;
     private int IntakeOutward = 1;
     private int IntakeNoPower = 0;
-    private double currentAngle = 0;
-    private double goalAngle = 0;
 
     /**
      * idk man figure it out
      */
     @Override
     public void runOpMode() {
-        pinPoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         FinalIntakeLeftDS = hardwareMap.get(Servo.class, "FinalIntakeLeftDS");
         finalIntakeServo = hardwareMap.get(Servo.class, "finalIntakeServo");
         frontLeftWheelDS = hardwareMap.get(DcMotor.class, "frontLeftWheelDS");
@@ -104,12 +99,43 @@ public class AutoAimingTest extends LinearOpMode {
         if (opModeIsActive()) {
             // Put run blocks here.
             while (opModeIsActive()) {
-                pinPoint.update();
-                currentAngle = pinPoint.getPosition().getHeading(AngleUnit.DEGREES);
 
                 y = gamepad1.left_stick_y;
                 x = -gamepad1.left_stick_x;
                 rx = -gamepad1.right_stick_x * 0.75;
+                if (gamepad1.b) {
+                    LLResult result = limelight.getLatestResult();
+                    if (result != null) {
+                        if (result.isValid()) {
+                            if (result.getTx() > 1) {
+                                rx = -(result.getTx() / 30);
+                                Pose3D botpose = result.getBotpose();
+                                telemetry.addData("rx", rx);
+                                telemetry.addData("tx", result.getTx());
+                                telemetry.addData("ty", result.getTy());
+                                telemetry.addData("Botpose", botpose.toString());
+                            }
+                            else if (result.getTx() < -1) {
+                                rx = -(result.getTx() / 30);
+                                Pose3D botpose = result.getBotpose();
+                                telemetry.addData("rx", rx);
+                                telemetry.addData("tx", result.getTx());
+                                telemetry.addData("ty", result.getTy());
+                                telemetry.addData("Botpose", botpose.toString());
+                            }
+                            else {
+                                for (int i = 0; i < 10; i++) {
+                                    telemetry.addLine("Aligned with target ----------");
+                                }
+                            }
+
+                        }
+                    } else {
+                        telemetry.addLine("No valid Limelight data !_!");
+                    }
+                }
+
+
                 frontLeftWheelDS.setPower(y + x + rx);
                 backLeftWheelDS.setPower(y - x + rx);
                 frontRightWheelDS.setPower(y - x - rx);
@@ -146,21 +172,6 @@ public class AutoAimingTest extends LinearOpMode {
                     FinalIntakeLeftDS.setPosition(20);
                 }
 
-                LLResult result = limelight.getLatestResult();
-                if (result != null) {
-                    if (result.isValid()) {
-                        Pose3D botpose = result.getBotpose();
-                        telemetry.addData("tx", result.getTx());
-                        telemetry.addData("ty", result.getTy());
-                        telemetry.addData("Botpose", botpose.toString());
-                        goalAngle = Math.toDegrees(Math.atan(result.getTy()/result.getTx()));
-                    }
-                } else {
-                    telemetry.addLine("No valid Limelight data !_!");
-                }
-
-
-
                 if (shoot) {
                     if (timer.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
                         finalIntakeServo.setPosition(0);
@@ -186,7 +197,7 @@ public class AutoAimingTest extends LinearOpMode {
                 if (!shoot) {
                     if (gamepad1.right_bumper) {
                         _1150RPMintake.setPower(IntakeInward);
-                    } else if (gamepad1.a) {
+                    } else if (gamepad1.left_bumper) {
                         _1150RPMintake.setPower(IntakeOutward);
                     } else {
                         _1150RPMintake.setPower(0);
@@ -240,8 +251,6 @@ public class AutoAimingTest extends LinearOpMode {
                 telemetry.addData("shoot:", shoot);
                 telemetry.addData("Left Flywheel RPM:", roundedLeftRPM);
                 telemetry.addData("Right Flywheel RPM:", roundedRightRPM);
-                telemetry.addData("Robot Heading: ", currentAngle);
-                telemetry.addData("Goal Angle: ", goalAngle);
                 telemetry.addLine("v1");
                 telemetry.update();
             }
