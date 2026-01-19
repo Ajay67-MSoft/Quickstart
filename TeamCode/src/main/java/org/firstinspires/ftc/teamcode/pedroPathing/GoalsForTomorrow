@@ -5,3 +5,9 @@
 angle at which the robot sees the april tag at
 5. use limelight to give current position in pedropath pose (x, y, heading)
 6. Cl
+
+
+8. Create an array inside AutoShootTest and AutoAimingTest of different flywheel speeds
+for different positions that can be cycled through with d-pad up or down.
+
+*ONLY DO THIS IF LIMELIGHT DISTANCE ISN'T WORKING

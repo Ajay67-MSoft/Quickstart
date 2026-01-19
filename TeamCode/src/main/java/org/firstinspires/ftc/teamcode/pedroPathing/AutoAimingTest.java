@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -10,10 +11,21 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+// imports to make this work: double distance = detection.ftcPose.z;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.VisionPortal;
+
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-@TeleOp(name = "AutoAdjustTest")
+import java.util.List;
+
+@TeleOp(name = "AutoAimingTest")
 public class AutoAimingTest extends LinearOpMode {
+    private VisionPortal visionPortal;
+    private AprilTagProcessor aprilTag;
+
 
     private Servo FinalIntakeLeftDS;
     private Servo finalIntakeServo;
@@ -46,7 +58,11 @@ public class AutoAimingTest extends LinearOpMode {
     private int shootFirst = 500;
     private int prepareSecond = 1000;
     private int shootSecond = 1500;
-    private boolean isAlignedWithCenter;
+    private boolean isAlignedWithTarget;
+//    private double angleOffset;
+    // add this later when we're able to auto shoot
+    private double distance;
+
 
     /**
      * idk man figure it out
@@ -80,6 +96,19 @@ public class AutoAimingTest extends LinearOpMode {
         PIDFCoefficients pidfNew = new PIDFCoefficients(10.0, 3.0, 0.0, 12.0);
         _6000RPMmotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
         _6000RPMmotorflywheelright.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
+
+
+
+
+
+
+        aprilTag = AprilTagProcessor.easyCreateWithDefaults();
+
+        visionPortal = VisionPortal.easyCreateWithDefaults(
+                hardwareMap.get(WebcamName.class, "Webcam 1"),
+                aprilTag
+        );
+
         waitForStart();
         if (opModeIsActive()) {
             // Put run blocks here.
@@ -118,37 +147,53 @@ public class AutoAimingTest extends LinearOpMode {
                     LLResult result = limelight.getLatestResult();
                     if (result != null) {
                         if (result.isValid()) {
+                            // tx, ty, and botpose telemetry data
                             Pose3D botpose = result.getBotpose();
                             telemetry.addData("tx", result.getTx());
                             telemetry.addData("ty", result.getTy());
                             telemetry.addData("Botpose", botpose.toString());
+
+                            // april tag distance stuff
+
+                            List<AprilTagDetection> detections = aprilTag.getDetections();
+                            if (!detections.isEmpty()) {
+                                AprilTagDetection detection = detections.get(0);
+                                double distance = detection.ftcPose.z;
+
+                                telemetry.addData("Tag Distance (in)", distance);
+                            }
+                            // if the result is valid, we're able to try auto-aiming
+
+                            if (isAlignedWithTarget == false) {
+                                // put logic here
+                                // if close enough to target, set to true
+                                // else
+                                    // if tx is less than 0, move left
+                                    // else
+                                        // move right (because tx has to be greater than 0 if not less than 0
+                            }
+                            } else if (timer.milliseconds() < shootFirst) { // 500 ms gap between this and above if is risky, if shooting isn't working change this
+                                finalIntakeServo.setPosition(0);
+                                FinalIntakeLeftDS.setPosition(0);
+                            } else if (timer.milliseconds() < prepareSecond) { // same comment as above
+                                finalIntakeServo.setPosition(20);
+                                FinalIntakeLeftDS.setPosition(20);
+                                _1150RPMintake.setPower(-1);
+                            } else if (timer.milliseconds() < shootSecond && Math.abs(_6000RPMmotor.getVelocity()) >= 1500) { // same comment as above
+                                finalIntakeServo.setPosition(0);
+                                finalIntakeServo.setPosition(0);
+                                _1150RPMintake.setPower(0);
+                            } else {
+                                finalIntakeServo.setPosition(20);
+                                FinalIntakeLeftDS.setPosition(20);
+                                _1150RPMintake.setPower(0);
+                                shoot = false;
+                            }
                         }
-                    }
                     else {
-                        telemetry.addLine("No valid Limelight data !_!");
+                        telemetry.addLine("*****2 No valid Limelight data !_!"); // in case something weird happens
                     }
 
-                    if (timer.milliseconds() < shootFirst) {
-                        isAlignedWithCenter = true;
-                    }
-                    else if (isAlignedWithCenter == true) {
-                        finalIntakeServo.setPosition(0);
-                        FinalIntakeLeftDS.setPosition(0);
-                    } else if (timer.milliseconds() < prepareSecond) {
-                        finalIntakeServo.setPosition(20);
-                        FinalIntakeLeftDS.setPosition(20);
-                        _1150RPMintake.setPower(-1);
-                    } else if (timer.milliseconds() < shootSecond && Math.abs(_6000RPMmotor.getVelocity()) >= 1500) {
-                        finalIntakeServo.setPosition(0);
-                        finalIntakeServo.setPosition(0);
-                        _1150RPMintake.setPower(0);
-                    } else {
-                        finalIntakeServo.setPosition(20);
-                        FinalIntakeLeftDS.setPosition(20);
-                        _1150RPMintake.setPower(0);
-                        shoot = false;
-                        isAlignedWithCenter = false;
-                    }
                 }
 
 
@@ -165,10 +210,20 @@ public class AutoAimingTest extends LinearOpMode {
                 if (gamepad1.y) {
                     _6000RPMmotor.setVelocity(-1500);
                     _6000RPMmotorflywheelright.setVelocity(1500);
-                    // auto detect rpm
-                    if (Math.abs(_6000RPMmotor.getVelocity()) >= 1500 && shoot == false && timer.milliseconds() > shootGap) {
-                        shoot = true;
-                        timer.reset();
+
+                    // only set shoot to true if you can see target
+                    LLResult initialResult = limelight.getLatestResult();
+                    if (initialResult != null) {
+                        if (initialResult.isValid()) {
+                            // auto detect rpm
+                            if (Math.abs(_6000RPMmotor.getVelocity()) >= 1500 && shoot == false && timer.milliseconds() > shootGap) {
+                                initialResult.getTx();
+                                shoot = true;
+                                timer.reset();
+                            }
+                        }
+                    } else {
+                        telemetry.addLine("No valid Limelight data !_!");
                     }
                 } else {
                     _6000RPMmotor.setPower(0);

@@ -127,14 +127,14 @@ public class AutoShootTest extends LinearOpMode {
                         telemetry.addLine("No valid Limelight data !_!");
                     }
 
-                    if (timer.milliseconds() < shootFirst) {
+                    if (timer.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
                         finalIntakeServo.setPosition(0);
                         FinalIntakeLeftDS.setPosition(0);
-                    } else if (timer.milliseconds() < prepareSecond) {
+                    } else if (timer.milliseconds() < prepareSecond) { // same comment as above
                         finalIntakeServo.setPosition(20);
                         FinalIntakeLeftDS.setPosition(20);
                         _1150RPMintake.setPower(-1);
-                    } else if (timer.milliseconds() < shootSecond && Math.abs(_6000RPMmotor.getVelocity()) >= 1500) {
+                    } else if (timer.milliseconds() < shootSecond && Math.abs(_6000RPMmotor.getVelocity()) >= 1500) { // same comment as above
                         finalIntakeServo.setPosition(0);
                         finalIntakeServo.setPosition(0);
                         _1150RPMintake.setPower(0);
