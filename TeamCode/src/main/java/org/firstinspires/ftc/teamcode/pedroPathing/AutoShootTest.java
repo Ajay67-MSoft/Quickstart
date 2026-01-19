@@ -86,7 +86,7 @@ public class AutoShootTest extends LinearOpMode {
         _6000RPMmotorflywheelright.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         PIDFCoefficients shooterPIDF =
-                new PIDFCoefficients(0.003, 0.0, 0.0001, 11);
+                new PIDFCoefficients(0.003, 0.0, 0.0001, 14.6);
 
         _6000RPMmotor.setPIDFCoefficients(
                 DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
@@ -107,8 +107,8 @@ public class AutoShootTest extends LinearOpMode {
                 // Put loop blocks here.
 
                 TICKS_PER_REV = 28;
-                SHOOT_RPM = 5000;
-                TARGET_SHOOT_RPM = 2800;
+                SHOOT_RPM = 3100;
+                TARGET_SHOOT_RPM = 3100;
 
                 shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0;
 
@@ -209,11 +209,12 @@ public class AutoShootTest extends LinearOpMode {
                     shoot = false;
 
                     // Emergency open-loop override
+
                     _6000RPMmotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                     _6000RPMmotorflywheelright.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-                    _6000RPMmotor.setVelocity(shootTicksPerSec);
-                    _6000RPMmotorflywheelright.setVelocity(-shootTicksPerSec);
+                    _6000RPMmotor.setPower(0.3);
+                    _6000RPMmotorflywheelright.setPower(-0.3);
                 }
 
 
