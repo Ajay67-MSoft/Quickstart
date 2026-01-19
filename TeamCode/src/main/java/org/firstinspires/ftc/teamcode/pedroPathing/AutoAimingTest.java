@@ -214,6 +214,22 @@ public class AutoAimingTest extends LinearOpMode {
                     _6000RPMmotorflywheelright.setVelocity(shootTicksPerSec);
                 }
 
+                if (gamepad1.dpad_down) {
+                    LLResult result = limelight.getLatestResult();
+                    if (result != null) {
+                        if (result.isValid()) {
+                                rx = -(result.getTx() / 30);
+                                Pose3D botpose = result.getBotpose();
+                                telemetry.addData("rx", rx);
+                                telemetry.addData("tx", result.getTx());
+                                telemetry.addData("ty", result.getTy());
+                                telemetry.addData("Botpose", botpose.toString());
+                        }
+                    } else {
+                        telemetry.addLine("No valid Limelight data !_!");
+                    }
+                }
+
                 if (gamepad1.aWasPressed()) {
                     _6000RPMmotor.setVelocity(0);
                     _6000RPMmotorflywheelright.setVelocity(0);
