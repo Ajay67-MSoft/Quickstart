@@ -12,10 +12,6 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 // imports to make this work: double distance = detection.ftcPose.z;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.firstinspires.ftc.vision.VisionPortal;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
@@ -23,9 +19,6 @@ import java.util.List;
 
 @TeleOp(name = "AutoAimingTest")
 public class AutoAimingTest extends LinearOpMode {
-    private VisionPortal visionPortal;
-    private AprilTagProcessor aprilTag;
-
 
     private Servo FinalIntakeLeftDS;
     private Servo finalIntakeServo;
@@ -98,17 +91,6 @@ public class AutoAimingTest extends LinearOpMode {
         _6000RPMmotorflywheelright.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
 
 
-
-
-
-
-        aprilTag = AprilTagProcessor.easyCreateWithDefaults();
-
-        visionPortal = VisionPortal.easyCreateWithDefaults(
-                hardwareMap.get(WebcamName.class, "Webcam 1"),
-                aprilTag
-        );
-
         waitForStart();
         if (opModeIsActive()) {
             // Put run blocks here.
@@ -153,15 +135,6 @@ public class AutoAimingTest extends LinearOpMode {
                             telemetry.addData("ty", result.getTy());
                             telemetry.addData("Botpose", botpose.toString());
 
-                            // april tag distance stuff
-
-                            List<AprilTagDetection> detections = aprilTag.getDetections();
-                            if (!detections.isEmpty()) {
-                                AprilTagDetection detection = detections.get(0);
-                                double distance = detection.ftcPose.z;
-
-                                telemetry.addData("Tag Distance (in)", distance);
-                            }
                             // if the result is valid, we're able to try auto-aiming
 
                             if (isAlignedWithTarget == false) {
