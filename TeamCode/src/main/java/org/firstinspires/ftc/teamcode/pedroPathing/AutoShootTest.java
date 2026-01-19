@@ -44,8 +44,16 @@ public class AutoShootTest extends LinearOpMode {
 
     private int shootGap = 2000;
     private int shootFirst = 500;
-    private int prepareSecond = 1000;
-    private int shootSecond = 1500;
+    private int prepareSecond = 2000;
+    private int shootSecond = 2500;
+    private double TICKS_PER_REV;
+    private double SHOOT_RPM;
+    private double TARGET_SHOOT_RPM;
+    private double shootTicksPerSec;
+    private static final double RPM_TOLERANCE = 100; // RPM
+    private int IntakeInward = -1;
+    private int IntakeOutward = 1;
+    private int IntakeNoPower = 0;
 
     /**
      * idk man figure it out
@@ -76,9 +84,15 @@ public class AutoShootTest extends LinearOpMode {
         finalIntakeServo.setPosition(20);
         _6000RPMmotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         _6000RPMmotorflywheelright.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        PIDFCoefficients pidfNew = new PIDFCoefficients(10.0, 3.0, 0.0, 12.0);
-        _6000RPMmotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
-        _6000RPMmotorflywheelright.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
+
+        PIDFCoefficients shooterPIDF =
+                new PIDFCoefficients(0.003, 0.0, 0.0001, 11);
+
+        _6000RPMmotor.setPIDFCoefficients(
+                DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
+        _6000RPMmotorflywheelright.setPIDFCoefficients(
+                DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
+
         waitForStart();
         if (opModeIsActive()) {
             // Put run blocks here.
@@ -91,6 +105,15 @@ public class AutoShootTest extends LinearOpMode {
                 frontRightWheelDS.setPower(y - x - rx);
                 backRightWheelDS.setPower(y + x - rx);
                 // Put loop blocks here.
+
+                TICKS_PER_REV = 28;
+                SHOOT_RPM = 5000;
+                TARGET_SHOOT_RPM = 2800;
+
+                shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0;
+
+                double leftRPM = _6000RPMmotor.getVelocity() * 60.0 / TICKS_PER_REV;
+                double rightRPM = _6000RPMmotorflywheelright.getVelocity() * 60.0 / TICKS_PER_REV;
 
               	/*
                 shoot logic:
@@ -133,54 +156,78 @@ public class AutoShootTest extends LinearOpMode {
                     } else if (timer.milliseconds() < prepareSecond) { // same comment as above
                         finalIntakeServo.setPosition(20);
                         FinalIntakeLeftDS.setPosition(20);
-                        _1150RPMintake.setPower(-1);
-                    } else if (timer.milliseconds() < shootSecond && Math.abs(_6000RPMmotor.getVelocity()) >= 1500) { // same comment as above
+                        _1150RPMintake.setPower(IntakeInward);
+                    } else if (timer.milliseconds() < shootSecond && Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) { // same comment as above
                         finalIntakeServo.setPosition(0);
-                        finalIntakeServo.setPosition(0);
+                        FinalIntakeLeftDS.setPosition(0);
                         _1150RPMintake.setPower(0);
                     } else {
                         finalIntakeServo.setPosition(20);
                         FinalIntakeLeftDS.setPosition(20);
-                        _1150RPMintake.setPower(0);
+                        _6000RPMmotor.setVelocity(0);
+                        _6000RPMmotorflywheelright.setVelocity(0);
                         shoot = false;
-                    }
-                }
-
-
-                if (gamepad1.right_bumper) {
-                    _1150RPMintake.setPower(-1);
-                }
-                else if (gamepad1.a) {
-                    _1150RPMintake.setPower(1);
-                }
-                else {
-                    _1150RPMintake.setPower(0);
-                }
-
-                if (gamepad1.y) {
-                    _6000RPMmotor.setVelocity(-1500);
-                    _6000RPMmotorflywheelright.setVelocity(1500);
-                    // auto detect rpm
-                    if (Math.abs(_6000RPMmotor.getVelocity()) >= 1500 && shoot == false && timer.milliseconds() > shootGap) {
-                        shoot = true;
                         timer.reset();
                     }
-                } else {
-                    _6000RPMmotor.setPower(0);
-                    _6000RPMmotorflywheelright.setPower(0);
+                }
+
+                if (!shoot) {
+                    if (gamepad1.right_bumper) {
+                        _1150RPMintake.setPower(IntakeInward);
+                    } else if (gamepad1.a) {
+                        _1150RPMintake.setPower(IntakeOutward);
+                    } else {
+                        _1150RPMintake.setPower(0);
+                    }
+                }
+
+                if (gamepad1.yWasReleased()) {
+                    _6000RPMmotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    _6000RPMmotorflywheelright.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+                    timer.reset();
+
+                    _6000RPMmotor.setVelocity(-shootTicksPerSec);
+                    _6000RPMmotorflywheelright.setVelocity(shootTicksPerSec);
+                }
+
+                if (gamepad1.aWasPressed()) {
+                    _6000RPMmotor.setVelocity(0);
+                    _6000RPMmotorflywheelright.setVelocity(0);
                     shoot = false;
                 }
-                if (gamepad1.x) {
-                    _6000RPMmotor.setPower(0.635);
-                    _6000RPMmotorflywheelright.setPower(-0.635);
+
+                // auto detect rpm
+                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
+                        && !shoot
+                        && timer.milliseconds() > shootGap) {
+                    shoot = true;
+                    timer.reset();
                 }
+
+                if (gamepad1.x) {
+                    shoot = false;
+
+                    // Emergency open-loop override
+                    _6000RPMmotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    _6000RPMmotorflywheelright.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+                    _6000RPMmotor.setVelocity(shootTicksPerSec);
+                    _6000RPMmotorflywheelright.setVelocity(-shootTicksPerSec);
+                }
+
+
+                double roundedLeftRPM  = Math.round(leftRPM / 20.0) * 20.0;
+                double roundedRightRPM = Math.round(rightRPM / 20.0) * 20.0;
+
                 PIDFCoefficients pidfCurrent = _6000RPMmotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
                 PIDFCoefficients pidfCurrent2 = _6000RPMmotorflywheelright.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
                 telemetry.addData("P", pidfCurrent.p);
                 telemetry.addData("P2", pidfCurrent2.p);
                 telemetry.addData("shoot:", shoot);
-                telemetry.addData("Left Flywheel RPM: ", _6000RPMmotor.getVelocity()); // peak 1800, avg 1500
-                telemetry.addData("Right Flywheel RPM: ", _6000RPMmotorflywheelright.getVelocity()); // peak 1800, avg 1500
+                telemetry.addData("Left Flywheel RPM:", roundedLeftRPM);
+                telemetry.addData("Right Flywheel RPM:", roundedRightRPM);
+                telemetry.addLine("v1");
                 telemetry.update();
             }
         }
