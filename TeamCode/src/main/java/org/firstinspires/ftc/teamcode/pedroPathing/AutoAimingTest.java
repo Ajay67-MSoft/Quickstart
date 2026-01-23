@@ -47,7 +47,8 @@ public class AutoAimingTest extends LinearOpMode {
 
     private int shootGap = 2000;
     private int shootFirst = 500;
-    private int prepareSecond = 2000;
+    private int prepareSecond = 1500;
+    private int stopIntake = 2000;
     private int shootSecond = 2500;
     private double TICKS_PER_REV;
     private double SHOOT_RPM;
@@ -143,10 +144,23 @@ public class AutoAimingTest extends LinearOpMode {
                 // Put loop blocks here.
 
                 TICKS_PER_REV = 28;
-                SHOOT_RPM = 3100;
+                SHOOT_RPM = 3100; // limelight ty:   0.83 - far (3000-3100 RPM), 3.76 - corner, 9.83 - purple line, 16.5 - closest possible (in front of purple line) (2400-2500 RPM)
                 TARGET_SHOOT_RPM = 3100;
 
+
+                LLResult result = limelight.getLatestResult();
+                if (result != null) {
+                    if (result.isValid()) {
+                        if (result.getTy() > 1) {
+                            TARGET_SHOOT_RPM -= (result.getTy() - 1) * 37;
+                            SHOOT_RPM -= (result.getTy() - 1) * 37;
+                            telemetry.addData("Target Shoot RPM:", TARGET_SHOOT_RPM);
+                        }
+                    }
+                }
                 shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0;
+
+
 
                 double leftRPM = _6000RPMmotor.getVelocity() * 60.0 / TICKS_PER_REV;
                 double rightRPM = _6000RPMmotorflywheelright.getVelocity() * 60.0 / TICKS_PER_REV;
@@ -180,10 +194,11 @@ public class AutoAimingTest extends LinearOpMode {
                         finalIntakeServo.setPosition(20);
                         FinalIntakeLeftDS.setPosition(20);
                         _1150RPMintake.setPower(IntakeInward);
+                    } else if (timer.milliseconds() < stopIntake) {
+                        _1150RPMintake.setPower(0);
                     } else if (timer.milliseconds() < shootSecond && Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) { // same comment as above
                         finalIntakeServo.setPosition(0);
                         FinalIntakeLeftDS.setPosition(0);
-                        _1150RPMintake.setPower(0);
                     } else {
                         finalIntakeServo.setPosition(20);
                         FinalIntakeLeftDS.setPosition(20);
@@ -215,10 +230,8 @@ public class AutoAimingTest extends LinearOpMode {
                 }
 
                 if (gamepad1.dpad_down) {
-                    LLResult result = limelight.getLatestResult();
                     if (result != null) {
                         if (result.isValid()) {
-                                rx = -(result.getTx() / 30);
                                 Pose3D botpose = result.getBotpose();
                                 telemetry.addData("rx", rx);
                                 telemetry.addData("tx", result.getTx());
@@ -265,6 +278,7 @@ public class AutoAimingTest extends LinearOpMode {
                 telemetry.addData("P", pidfCurrent.p);
                 telemetry.addData("P2", pidfCurrent2.p);
                 telemetry.addData("shoot:", shoot);
+                telemetry.addData("Shoot RPM:", SHOOT_RPM);
                 telemetry.addData("Left Flywheel RPM:", roundedLeftRPM);
                 telemetry.addData("Right Flywheel RPM:", roundedRightRPM);
                 telemetry.addLine("v1");
