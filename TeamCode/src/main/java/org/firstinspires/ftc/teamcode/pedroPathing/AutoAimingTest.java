@@ -55,9 +55,10 @@ public class AutoAimingTest extends LinearOpMode {
     private double TARGET_SHOOT_RPM;
     private double shootTicksPerSec;
     private static final double RPM_TOLERANCE = 100; // RPM
-    private int IntakeInward = -1;
+    private int IntakeInward = -2;
     private int IntakeOutward = 1;
     private int IntakeNoPower = 0;
+    private double Ty_Autoshoot = 77.7;
 
     @Override
     public void runOpMode() {
@@ -86,7 +87,7 @@ public class AutoAimingTest extends LinearOpMode {
         _6000RPMmotorflywheelright.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         PIDFCoefficients shooterPIDF =
-                new PIDFCoefficients(0.011, 0.0, 0.001, 14.6);
+                new PIDFCoefficients(0.015, 0.0, 0.001, 15);
 
         _6000RPMmotor.setPIDFCoefficients(
                 DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
@@ -149,8 +150,8 @@ public class AutoAimingTest extends LinearOpMode {
                 if (result != null) {
                     if (result.isValid()) {
                         if (result.getTy() > 1) {
-                            TARGET_SHOOT_RPM -= (result.getTy() - 1) * 20;
-                            SHOOT_RPM -= (result.getTy() - 1) * 20;
+                            TARGET_SHOOT_RPM -= (result.getTy() - 1) * Ty_Autoshoot; // greater = shorter shot
+                            SHOOT_RPM -= (result.getTy() - 1) * Ty_Autoshoot; // greater = shorter shot
                             telemetry.addData("Target Shoot RPM:", TARGET_SHOOT_RPM);
                         }
                     }
@@ -226,23 +227,6 @@ public class AutoAimingTest extends LinearOpMode {
                     _6000RPMmotorflywheelright.setVelocity(shootTicksPerSec);
                 }
 
-                if (gamepad1.dpad_down) {
-                    if (result != null) {
-                        if (result.isValid()) {
-                            Pose3D botpose = result.getBotpose();
-                            telemetry.addData("rx", rx);
-                            telemetry.addData("tx", result.getTx());
-                            telemetry.addData("ty", result.getTy());
-                            telemetry.addData("Botpose", botpose.toString());
-                        }
-                        else {
-                            telemetry.addLine("Not working");
-                        }
-                    } else {
-                        telemetry.addLine("No valid Limelight data !_!");
-                    }
-                }
-
                 if (gamepad1.aWasPressed()) {
                     _6000RPMmotor.setVelocity(0);
                     _6000RPMmotorflywheelright.setVelocity(0);
@@ -268,6 +252,38 @@ public class AutoAimingTest extends LinearOpMode {
                     _6000RPMmotor.setPower(0.3);
                     _6000RPMmotorflywheelright.setPower(-0.3);
                 }
+
+
+// ------------------------- D-PAD TESTING  (remove before comp) -----------------------------
+
+
+                if (gamepad1.dpad_down) {
+                    if (result != null) {
+                        if (result.isValid()) {
+                            Pose3D botpose = result.getBotpose();
+                            telemetry.addData("rx", rx);
+                            telemetry.addData("tx", result.getTx());
+                            telemetry.addData("ty", result.getTy());
+                            telemetry.addData("Botpose", botpose.toString());
+                        }
+                        else {
+                            telemetry.addLine("Not working");
+                        }
+                    } else {
+                        telemetry.addLine("No valid Limelight data !_!");
+                    }
+                }
+
+//                if (gamepad1.dpad_up) {
+//                    Ty_Autoshoot += 0.1;
+//                }
+//                else if (gamepad1.dpad_left) {
+//                    Ty_Autoshoot -= 0.1;
+//                }
+//
+//                telemetry.addData("Ty Autoshoot:", Ty_Autoshoot);
+
+// ---------------------- END OF D-PAD TESTING  (remove before comp) ----------------------
 
 
                 double roundedLeftRPM  = Math.round(leftRPM / 20.0) * 20.0;
