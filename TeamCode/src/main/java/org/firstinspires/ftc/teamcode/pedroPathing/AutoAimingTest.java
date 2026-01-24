@@ -152,8 +152,8 @@ public class AutoAimingTest extends LinearOpMode {
                 if (result != null) {
                     if (result.isValid()) {
                         if (result.getTy() > 1) {
-                            TARGET_SHOOT_RPM -= (result.getTy() - 1) * 37;
-                            SHOOT_RPM -= (result.getTy() - 1) * 37;
+                            TARGET_SHOOT_RPM -= (result.getTy() - 1) * 33;
+                            SHOOT_RPM -= (result.getTy() - 1) * 33;
                             telemetry.addData("Target Shoot RPM:", TARGET_SHOOT_RPM);
                         }
                     }
