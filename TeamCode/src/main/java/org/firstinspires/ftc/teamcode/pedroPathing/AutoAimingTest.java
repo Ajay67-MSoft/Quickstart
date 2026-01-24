@@ -229,11 +229,14 @@ public class AutoAimingTest extends LinearOpMode {
                 if (gamepad1.dpad_down) {
                     if (result != null) {
                         if (result.isValid()) {
-                                Pose3D botpose = result.getBotpose();
-                                telemetry.addData("rx", rx);
-                                telemetry.addData("tx", result.getTx());
-                                telemetry.addData("ty", result.getTy());
-                                telemetry.addData("Botpose", botpose.toString());
+                            Pose3D botpose = result.getBotpose();
+                            telemetry.addData("rx", rx);
+                            telemetry.addData("tx", result.getTx());
+                            telemetry.addData("ty", result.getTy());
+                            telemetry.addData("Botpose", botpose.toString());
+                        }
+                        else {
+                            telemetry.addLine("Not working");
                         }
                     } else {
                         telemetry.addLine("No valid Limelight data !_!");

@@ -51,6 +51,9 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private int IntakeOutward = 1;
     private int IntakeNoPower = 0;
 
+
+    private ElapsedTime timer = new ElapsedTime();
+
     /* ================= PEDRO ================= */
     private Follower follower;
     private Timer stateTimer;
@@ -182,6 +185,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
         telemetry.addData("Flywheel RPM", "%.1f", currentRPM);
         telemetry.addData("Target RPM", TARGET_RPM);
+        telemetry.addData("timer:", timer.milliseconds());
         telemetry.update();
 
         double leftRPM = leftFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
@@ -208,6 +212,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
                         && !shoot) {
                     shoot = true;
+                    timer.reset();
                 }
 
                 if (shoot == false) {
@@ -216,7 +221,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 }
 
                 if (shoot) {
-                    ElapsedTime timer = new ElapsedTime();
+
                     if (timer.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
                         finalIntakeRight.setPosition(0);
                         finalIntakeLeft.setPosition(0);
@@ -239,6 +244,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
                         transition(State.DRIVE_TO_COLLECT);
                     }
                 }
+                break;
             case SHOOT_2:
                 follower.followPath(pathDriveToEnd, true);
                 transition(State.DRIVE_OUTSIDE);
