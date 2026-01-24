@@ -40,10 +40,10 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private int shootGap = 2000;
     private int shootFirst = 500;
     private int prepareSecond = 1500;
-    private int stopIntake = 2500;
-    private int shootSecond = 3000;
-    private double SHOOT_RPM = 2500;
-    private double TARGET_SHOOT_RPM = 2500;
+    private int stopIntake = 3000;
+    private int shootSecond = 4000;
+    private double SHOOT_RPM = 2675;
+    private double TARGET_SHOOT_RPM = 2675;
     private static final double TICKS_PER_REV = 28.0;
     private final double shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0;;
     private static final double TARGET_RPM = 2000.0;
@@ -67,7 +67,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
     public enum State {
         DRIVE_TO_SHOOT_1,
         SHOOT_1,
-        DRIVE_TO_COLLECT,
+        DRIVE_TO_COLLECT_1,
         COLLECT_1,
         COLLECT_2,
         DRIVE_BACK_TO_SHOOT_2,
@@ -82,7 +82,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private final Pose startPose = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143));
     private final Pose shootPose = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(143));
     private final Pose collect1 = new Pose(44.4, 84, Math.toRadians(180));
-    private final Pose collect2 = new Pose(29, 84, Math.toRadians(180));
+    private final Pose collect2 = new Pose(15, 84, Math.toRadians(180));
     private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(138));
     private final Pose endPose = new Pose(44.4, 72, Math.toRadians(180));
 
@@ -113,8 +113,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
         intake1150.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        leftFlywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        rightFlywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         intake1150.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         intake1150.setPower(0);
@@ -126,17 +126,20 @@ public class BlueStructureStartingPoint2 extends OpMode {
         finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
         finalIntakeRight.setPosition(SERVO_STOP_POSITION);
 
-        leftFlywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightFlywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftFlywheel.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        rightFlywheel.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
 
-        leftFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftFlywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        rightFlywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
         lastFlywheelPosition = leftFlywheel.getCurrentPosition();
         lastFlywheelTime = stateTimer.getElapsedTimeSeconds();
 
         PIDFCoefficients shooterPIDF =
-                new PIDFCoefficients(0.003, 0.0, 0.0001, 14.6);
+                new PIDFCoefficients(0.005, 0.0, 0.0001, 14.6);
 
         leftFlywheel.setPIDFCoefficients(
                 DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
@@ -195,7 +198,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
         double leftRPM = leftFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
         double rightRPM = rightFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
 
-        telemetry.addData("Flywheel RPM", "%.1f", currentRPM);
+        telemetry.addData("Flywheel RPM Left:", "%.1f", leftRPM);
+        telemetry.addData("Flywheel RPM Right:", "%.1f", rightRPM);
         telemetry.addData("Target RPM", TARGET_RPM);
         telemetry.addData("timer:", timer.milliseconds());
         telemetry.update();
@@ -243,7 +247,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
                         intake1150.setPower(IntakeInward);
                     } else if (timer.milliseconds() < stopIntake) {
                         intake1150.setPower(0);
-                    } else if (timer.milliseconds() < shootSecond && Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) { // same comment as above
+                    } else if (timer.milliseconds() < shootSecond) { // same comment as above
                         finalIntakeRight.setPosition(0);
                         finalIntakeLeft.setPosition(0);
                     } else {
@@ -253,23 +257,60 @@ public class BlueStructureStartingPoint2 extends OpMode {
                         rightFlywheel.setVelocity(0);
                         shoot = false;
                         timer.reset();
-                        transition(State.DRIVE_TO_COLLECT);
+                        transition(State.DRIVE_TO_COLLECT_1);
                     }
                 }
                 break;
             case SHOOT_2:
-                follower.followPath(pathDriveToEnd, true);
-                transition(State.DRIVE_OUTSIDE);
+
+                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
+                        && !shoot) {
+                    shoot = true;
+                    timer.reset();
+                }
+
+                if (shoot == false) {
+                    finalIntakeRight.setPosition(20);
+                    finalIntakeLeft.setPosition(20);
+                }
+
+                if (shoot) {
+
+                    if (timer.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
+                        finalIntakeRight.setPosition(0);
+                        finalIntakeLeft.setPosition(0);
+                    } else if (timer.milliseconds() < prepareSecond) { // same comment as above
+                        finalIntakeRight.setPosition(20);
+                        finalIntakeLeft.setPosition(20);
+                        intake1150.setPower(IntakeInward);
+                    } else if (timer.milliseconds() < stopIntake) {
+                        intake1150.setPower(0);
+                    } else if (timer.milliseconds() < shootSecond) { // same comment as above
+                        finalIntakeRight.setPosition(0);
+                        finalIntakeLeft.setPosition(0);
+                    } else {
+                        finalIntakeRight.setPosition(20);
+                        finalIntakeLeft.setPosition(20);
+                        leftFlywheel.setVelocity(0);
+                        rightFlywheel.setVelocity(0);
+                        shoot = false;
+                        timer.reset();
+                        follower.followPath(pathDriveToEnd, true); // switch
+                        transition(State.DRIVE_OUTSIDE);
+                    }
+                }
                 break;
-            case DRIVE_TO_COLLECT:
-                if (!follower.isBusy()) {
+            case DRIVE_TO_COLLECT_1:
+
+                intake1150.setPower(-1);
+
+                if (!follower.isBusy() && stateTimer.getElapsedTimeSeconds() >= 1.0) {
                     follower.followPath(pathCollect1, true);
                     transition(State.COLLECT_1);
                 }
                 break;
 
             case COLLECT_1:
-                intake1150.setPower(-1);
                 if (!follower.isBusy()) {
                     follower.followPath(pathCollect2, true);
                     transition(State.COLLECT_2);
@@ -279,13 +320,17 @@ public class BlueStructureStartingPoint2 extends OpMode {
             case COLLECT_2:
                 if (!follower.isBusy()) {
                     follower.followPath(pathReturnShoot, true);
-                    intake1150.setPower(0);
                     transition(State.DRIVE_BACK_TO_SHOOT_2);
                 }
                 break;
 
             case DRIVE_BACK_TO_SHOOT_2:
+
+                leftFlywheel.setVelocity(-shootTicksPerSec);
+                rightFlywheel.setVelocity(shootTicksPerSec);
+
                 if (!follower.isBusy()) {
+                    intake1150.setPower(0);
                     transition(State.SHOOT_2);
                 }
                 break;
