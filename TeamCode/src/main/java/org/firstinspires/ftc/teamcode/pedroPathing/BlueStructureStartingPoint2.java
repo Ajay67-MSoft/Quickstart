@@ -40,8 +40,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private int shootGap = 2000;
     private int shootFirst = 500;
     private int prepareSecond = 1500;
-    private int stopIntake = 2000;
-    private int shootSecond = 2500;
+    private int stopIntake = 2500;
+    private int shootSecond = 3000;
     private double SHOOT_RPM = 2500;
     private double TARGET_SHOOT_RPM = 2500;
     private static final double TICKS_PER_REV = 28.0;
@@ -192,17 +192,23 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
         double currentRPM = getFlywheelRPM(leftFlywheel);
 
+        double leftRPM = leftFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
+        double rightRPM = rightFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
+
         telemetry.addData("Flywheel RPM", "%.1f", currentRPM);
         telemetry.addData("Target RPM", TARGET_RPM);
         telemetry.addData("timer:", timer.milliseconds());
         telemetry.update();
 
-        double leftRPM = leftFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
-        double rightRPM = rightFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
+
 
         switch (state) {
 
             case DRIVE_TO_SHOOT_1:
+
+                leftFlywheel.setVelocity(-shootTicksPerSec);
+                rightFlywheel.setVelocity(shootTicksPerSec);
+
                 if (!pathStarted) {
                     follower.followPath(pathShoot1, true);
                     pathStarted = true;
@@ -214,9 +220,6 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 break;
 
             case SHOOT_1:
-
-                leftFlywheel.setVelocity(-shootTicksPerSec);
-                rightFlywheel.setVelocity(shootTicksPerSec);
 
                 if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
                         && !shoot) {
