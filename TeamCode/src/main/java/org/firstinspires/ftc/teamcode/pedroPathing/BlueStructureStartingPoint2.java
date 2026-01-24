@@ -36,14 +36,15 @@ public class BlueStructureStartingPoint2 extends OpMode {
     /* ================= SHOOTING CONSTANTS ================= */
 
     // limelight ty: 16.5 - closest possible (in front of purple line) (2400-2500 RPM)
-    private boolean shoot = false;
+    private boolean shootLeft = false;
+    private boolean shootRight = false;
     private int shootGap = 2000;
     private int shootFirst = 500;
     private int prepareSecond = 1500;
-    private int stopIntake = 3000;
-    private int shootSecond = 4000;
-    private double SHOOT_RPM = 2675;
-    private double TARGET_SHOOT_RPM = 2675;
+    private int stopIntake = 3500;
+    private int shootSecond = 4500;
+    private double SHOOT_RPM = 2500;
+    private double TARGET_SHOOT_RPM = 2500;
     private static final double TICKS_PER_REV = 28.0;
     private final double shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0;;
     private static final double TARGET_RPM = 2000.0;
@@ -53,7 +54,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private int IntakeNoPower = 0;
 
 
-    private ElapsedTime timer = new ElapsedTime();
+    private ElapsedTime timerLeft = new ElapsedTime();
+    private ElapsedTime timerRight = new ElapsedTime();
 
     /* ================= PEDRO ================= */
     private Follower follower;
@@ -80,10 +82,10 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
     /* ================= POSES ================= */
     private final Pose startPose = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143));
-    private final Pose shootPose = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(143));
+    private final Pose shootPose = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(145));
     private final Pose collect1 = new Pose(44.4, 84, Math.toRadians(180));
-    private final Pose collect2 = new Pose(15, 84, Math.toRadians(180));
-    private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(138));
+    private final Pose collect2 = new Pose(15, 80, Math.toRadians(180));
+    private final Pose shootPose2 = new Pose(51.4424898511502, 104.83355886332882, Math.toRadians(137.5));
     private final Pose endPose = new Pose(44.4, 72, Math.toRadians(180));
 
     /* ================= PATHS ================= */
@@ -139,7 +141,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
         lastFlywheelTime = stateTimer.getElapsedTimeSeconds();
 
         PIDFCoefficients shooterPIDF =
-                new PIDFCoefficients(0.005, 0.0, 0.0001, 14.6);
+                new PIDFCoefficients(0.011, 0.0, 0.001, 14.6);
 
         leftFlywheel.setPIDFCoefficients(
                 DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
@@ -201,7 +203,8 @@ public class BlueStructureStartingPoint2 extends OpMode {
         telemetry.addData("Flywheel RPM Left:", "%.1f", leftRPM);
         telemetry.addData("Flywheel RPM Right:", "%.1f", rightRPM);
         telemetry.addData("Target RPM", TARGET_RPM);
-        telemetry.addData("timer:", timer.milliseconds());
+        telemetry.addData("timer: left", timerLeft.milliseconds());
+        telemetry.addData("timer right:", timerRight.milliseconds());
         telemetry.update();
 
 
@@ -225,78 +228,116 @@ public class BlueStructureStartingPoint2 extends OpMode {
 
             case SHOOT_1:
 
+                leftFlywheel.setVelocity(-shootTicksPerSec);
+                rightFlywheel.setVelocity(shootTicksPerSec);
+
+                if (stateTimer.getElapsedTimeSeconds() >= 10) {
+                    transition(State.DRIVE_TO_COLLECT_1);
+                }
+
                 if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
-                        && !shoot) {
-                    shoot = true;
-                    timer.reset();
+                        && !shootLeft) {
+                    shootLeft = true;
+                    timerLeft.reset();
+                }
+                if (Math.abs(rightRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
+                        && !shootRight) {
+                    shootRight = true;
+                    timerRight.reset();
                 }
 
-                if (shoot == false) {
-                    finalIntakeRight.setPosition(20);
-                    finalIntakeLeft.setPosition(20);
-                }
+                if (shootLeft) {
 
-                if (shoot) {
-
-                    if (timer.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
-                        finalIntakeRight.setPosition(0);
+                    if (timerLeft.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
                         finalIntakeLeft.setPosition(0);
-                    } else if (timer.milliseconds() < prepareSecond) { // same comment as above
-                        finalIntakeRight.setPosition(20);
+                    } else if (timerLeft.milliseconds() < prepareSecond) { // same comment as above
                         finalIntakeLeft.setPosition(20);
                         intake1150.setPower(IntakeInward);
-                    } else if (timer.milliseconds() < stopIntake) {
+                    } else if (timerLeft.milliseconds() < stopIntake) {
                         intake1150.setPower(0);
-                    } else if (timer.milliseconds() < shootSecond) { // same comment as above
-                        finalIntakeRight.setPosition(0);
+                    } else if (timerLeft.milliseconds() < shootSecond) { // same comment as above
                         finalIntakeLeft.setPosition(0);
                     } else {
-                        finalIntakeRight.setPosition(20);
                         finalIntakeLeft.setPosition(20);
                         leftFlywheel.setVelocity(0);
+                        shootLeft = false;
+                        timerLeft.reset();
+                    }
+                }
+                if (shootRight) {
+
+                    if (timerRight.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
+                        finalIntakeRight.setPosition(0);
+                    } else if (timerRight.milliseconds() < prepareSecond) { // same comment as above
+                        finalIntakeRight.setPosition(20);
+                        intake1150.setPower(IntakeInward);
+                    } else if (timerRight.milliseconds() < stopIntake) {
+                        intake1150.setPower(0);
+                    } else if (timerRight.milliseconds() < shootSecond) { // same comment as above
+                        finalIntakeRight.setPosition(0);
+                    } else {
+                        finalIntakeRight.setPosition(20);
                         rightFlywheel.setVelocity(0);
-                        shoot = false;
-                        timer.reset();
-                        transition(State.DRIVE_TO_COLLECT_1);
+                        shootRight = false;
+                        timerRight.reset();
                     }
                 }
                 break;
             case SHOOT_2:
 
+                leftFlywheel.setVelocity(-shootTicksPerSec);
+                rightFlywheel.setVelocity(shootTicksPerSec);
+
+                if (stateTimer.getElapsedTimeSeconds() >= 10) {
+                    transition(State.DRIVE_OUTSIDE);
+                    follower.followPath(pathDriveToEnd);
+                }
+
                 if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
-                        && !shoot) {
-                    shoot = true;
-                    timer.reset();
+                        && !shootLeft) {
+                    shootLeft = true;
+                    timerLeft.reset();
+                }
+                if (Math.abs(rightRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
+                        && !shootRight) {
+                    shootRight = true;
+                    timerRight.reset();
                 }
 
-                if (shoot == false) {
-                    finalIntakeRight.setPosition(20);
-                    finalIntakeLeft.setPosition(20);
-                }
+                if (shootLeft) {
 
-                if (shoot) {
-
-                    if (timer.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
-                        finalIntakeRight.setPosition(0);
+                    if (timerLeft.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
                         finalIntakeLeft.setPosition(0);
-                    } else if (timer.milliseconds() < prepareSecond) { // same comment as above
-                        finalIntakeRight.setPosition(20);
+                    } else if (timerLeft.milliseconds() < prepareSecond) { // same comment as above
                         finalIntakeLeft.setPosition(20);
                         intake1150.setPower(IntakeInward);
-                    } else if (timer.milliseconds() < stopIntake) {
+                    } else if (timerLeft.milliseconds() < stopIntake) {
                         intake1150.setPower(0);
-                    } else if (timer.milliseconds() < shootSecond) { // same comment as above
-                        finalIntakeRight.setPosition(0);
+                    } else if (timerLeft.milliseconds() < shootSecond) { // same comment as above
                         finalIntakeLeft.setPosition(0);
                     } else {
-                        finalIntakeRight.setPosition(20);
                         finalIntakeLeft.setPosition(20);
                         leftFlywheel.setVelocity(0);
+                        shootLeft = false;
+                        timerLeft.reset();
+                    }
+                }
+                if (shootRight) {
+
+                    if (timerRight.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
+                        finalIntakeRight.setPosition(0);
+                    } else if (timerRight.milliseconds() < prepareSecond) { // same comment as above
+                        finalIntakeRight.setPosition(20);
+                        intake1150.setPower(IntakeInward);
+                    } else if (timerRight.milliseconds() < stopIntake) {
+                        intake1150.setPower(0);
+                    } else if (timerRight.milliseconds() < shootSecond) { // same comment as above
+                        finalIntakeRight.setPosition(0);
+                    } else {
+                        finalIntakeRight.setPosition(20);
                         rightFlywheel.setVelocity(0);
-                        shoot = false;
-                        timer.reset();
-                        follower.followPath(pathDriveToEnd, true); // switch
-                        transition(State.DRIVE_OUTSIDE);
+                        shootRight = false;
+                        timerRight.reset();
                     }
                 }
                 break;

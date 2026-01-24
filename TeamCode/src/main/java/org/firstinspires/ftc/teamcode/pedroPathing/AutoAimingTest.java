@@ -86,7 +86,7 @@ public class AutoAimingTest extends LinearOpMode {
         _6000RPMmotorflywheelright.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         PIDFCoefficients shooterPIDF =
-                new PIDFCoefficients(0.003, 0.0, 0.0001, 14.6);
+                new PIDFCoefficients(0.011, 0.0, 0.001, 14.6);
 
         _6000RPMmotor.setPIDFCoefficients(
                 DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
@@ -149,8 +149,8 @@ public class AutoAimingTest extends LinearOpMode {
                 if (result != null) {
                     if (result.isValid()) {
                         if (result.getTy() > 1) {
-                            TARGET_SHOOT_RPM -= (result.getTy() - 1) * 33;
-                            SHOOT_RPM -= (result.getTy() - 1) * 33;
+                            TARGET_SHOOT_RPM -= (result.getTy() - 1) * 20;
+                            SHOOT_RPM -= (result.getTy() - 1) * 20;
                             telemetry.addData("Target Shoot RPM:", TARGET_SHOOT_RPM);
                         }
                     }
