@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -134,7 +135,15 @@ public class BlueStructureStartingPoint2 extends OpMode {
         lastFlywheelPosition = leftFlywheel.getCurrentPosition();
         lastFlywheelTime = stateTimer.getElapsedTimeSeconds();
 
-        telemetry.addLine("14 POOPS ON EILEEN");
+        PIDFCoefficients shooterPIDF =
+                new PIDFCoefficients(0.003, 0.0, 0.0001, 14.6);
+
+        leftFlywheel.setPIDFCoefficients(
+                DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
+        rightFlywheel.setPIDFCoefficients(
+                DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
+
+        telemetry.addLine("15 POOPS ON EILEEN");
 
         buildPaths();
 
