@@ -59,9 +59,6 @@ public class AutoAimingTest extends LinearOpMode {
     private int IntakeOutward = 1;
     private int IntakeNoPower = 0;
 
-    /**
-     * idk man figure it out
-     */
     @Override
     public void runOpMode() {
         FinalIntakeLeftDS = hardwareMap.get(Servo.class, "FinalIntakeLeftDS");

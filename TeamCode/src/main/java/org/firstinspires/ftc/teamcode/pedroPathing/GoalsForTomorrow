@@ -11,3 +11,5 @@ angle at which the robot sees the april tag at
 for different positions that can be cycled through with d-pad up or down.
 
 *ONLY DO THIS IF LIMELIGHT DISTANCE ISN'T WORKING
+
+be cautious of inconsistent motor and servo names between teleop and auto files
