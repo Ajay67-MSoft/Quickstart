@@ -274,14 +274,14 @@ public class AutoAimingTest extends LinearOpMode {
                     }
                 }
 
-//                if (gamepad1.dpad_up) {
-//                    Ty_Autoshoot += 0.1;
-//                }
-//                else if (gamepad1.dpad_left) {
-//                    Ty_Autoshoot -= 0.1;
-//                }
-//
-//                telemetry.addData("Ty Autoshoot:", Ty_Autoshoot);
+                if (gamepad1.dpad_up) {
+                    Ty_Autoshoot += 0.1;
+                }
+                else if (gamepad1.dpad_left) {
+                    Ty_Autoshoot -= 0.1;
+                }
+
+                telemetry.addData("Ty Autoshoot:", Ty_Autoshoot);
 
 // ---------------------- END OF D-PAD TESTING  (remove before comp) ----------------------
 
