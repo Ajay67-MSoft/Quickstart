@@ -143,6 +143,7 @@ public class AutoAimingTest extends LinearOpMode {
 
                 TICKS_PER_REV = 28;
                 SHOOT_RPM = 3100; // limelight ty:   0.83 - far (3000-3100 RPM), 3.76 - corner, 9.83 - purple line, 16.5 - closest possible (in front of purple line) (2400-2500 RPM)
+                // 8.45 - 77.81 autoshoot
                 TARGET_SHOOT_RPM = 3100;
 
 
@@ -275,10 +276,10 @@ public class AutoAimingTest extends LinearOpMode {
                 }
 
                 if (gamepad1.dpad_up) {
-                    Ty_Autoshoot += 0.1;
+                    Ty_Autoshoot += 0.01;
                 }
                 else if (gamepad1.dpad_left) {
-                    Ty_Autoshoot -= 0.1;
+                    Ty_Autoshoot -= 0.01;
                 }
 
                 telemetry.addData("Ty Autoshoot:", Ty_Autoshoot);
