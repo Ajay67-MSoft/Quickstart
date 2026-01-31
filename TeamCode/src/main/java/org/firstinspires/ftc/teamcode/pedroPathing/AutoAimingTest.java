@@ -142,7 +142,7 @@ public class AutoAimingTest extends LinearOpMode {
                 // Put loop blocks here.
 
                 TICKS_PER_REV = 28;
-                SHOOT_RPM = 3100; // limelight ty:  6.37 - corner (2600), 10 - perfect pos (2550), 13.55 - on top of purple line (2366), 16.55 - closest possible (in front of purple line) (2250-2350 RPM)
+                SHOOT_RPM = 3100; // limelight ty: 3.7 - far end (1925), 6.37 - corner (2600), 10 - perfect pos (2550), 13.55 - on top of purple line (2366), 16.55 - closest possible (in front of purple line) (2250-2350 RPM)
                 // 8.45 - 77.81 autoshoot
                 TARGET_SHOOT_RPM = 3100;
 
