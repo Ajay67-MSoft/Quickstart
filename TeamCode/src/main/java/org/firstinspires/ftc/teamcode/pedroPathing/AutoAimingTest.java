@@ -142,7 +142,7 @@ public class AutoAimingTest extends LinearOpMode {
                 // Put loop blocks here.
 
                 TICKS_PER_REV = 28;
-                SHOOT_RPM = 3100; // limelight ty:   0.83 - far (3000-3100 RPM), 3.76 - corner, 9.83 - purple line, 16.5 - closest possible (in front of purple line) (2400-2500 RPM)
+                SHOOT_RPM = 3100; // limelight ty:  6.37 - corner (2600), 10 - perfect pos (2550), 13.55 - on top of purple line (2366), 16.55 - closest possible (in front of purple line) (2250-2350 RPM)
                 // 8.45 - 77.81 autoshoot
                 TARGET_SHOOT_RPM = 3100;
 
@@ -195,7 +195,7 @@ public class AutoAimingTest extends LinearOpMode {
                         _1150RPMintake.setPower(IntakeInward);
                     } else if (timer.milliseconds() < stopIntake) {
                         _1150RPMintake.setPower(0);
-                    } else if (timer.milliseconds() < shootSecond && Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) { // same comment as above
+                    } else if (timer.milliseconds() < shootSecond && Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE && Math.abs(leftRPM) <= TARGET_SHOOT_RPM) { // same comment as above
                         finalIntakeServo.setPosition(0);
                         FinalIntakeLeftDS.setPosition(0);
                     } else {
