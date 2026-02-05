@@ -9,7 +9,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
 GOALS WITH THIS COMMIT
@@ -24,16 +26,33 @@ public class REDFarEndAuto extends OpMode {
 
     /* ================= HARDWARE ================= */
 
-    private DcMotor leftFlywheel;
-    private DcMotor rightFlywheel;
+    private DcMotorEx leftFlywheel;
+    private DcMotorEx rightFlywheel;
     private DcMotor intake1150;
     private Servo finalIntakeLeft;
     private Servo finalIntakeRight;
 
-    private double leftFlywheelPower = -0.58-.22; // orignal was 0.58, went to -0.38 to account for max voltage battery
-    private double rightFlywheelPower = 0.5-.12; // original was 0.5
+    // limelight ty: 16.5 - closest possible (in front of purple line) (2400-2500 RPM)
+    private boolean shootLeft = false;
+    private boolean shootRight = false;
+    private int shootGap = 2000;
+    private int shootFirst = 500;
+    private int prepareSecond = 1500;
+    private int stopIntake = 3500;
+    private int shootSecond = 4500;
+    private double SHOOT_RPM = 2650;
+    private double TARGET_SHOOT_RPM = 2500;
+    private static final double TICKS_PER_REV = 28.0;
+    private final double shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0;;
+    private static final double TARGET_RPM = 2000.0;
+    private static final double RPM_TOLERANCE = 100;
+    private int IntakeInward = -1;
+    private int IntakeOutward = 1;
+    private int IntakeNoPower = 0;
 
-    private double flywheelRampUpDurationSeconds = 3.0;
+
+    private ElapsedTime timerLeft = new ElapsedTime();
+    private ElapsedTime timerRight = new ElapsedTime();
 
     /* ================= PEDRO ================= */
 
@@ -54,8 +73,8 @@ public class REDFarEndAuto extends OpMode {
     /* ================= POSES ================= */
 
     private final Pose startPose = new Pose(88, 8.2, Math.toRadians(90));
-    private final Pose shootPose = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(57.5));
-    private final Pose endPose = new Pose(88, 8.2, Math.toRadians(90));
+    private final Pose shootPose = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66));
+    private final Pose endPose = new Pose(95, 36, Math.toRadians(0));
 
     /* ================= PATHS ================= */
 
@@ -78,16 +97,16 @@ public class REDFarEndAuto extends OpMode {
 
         stateTimer = new Timer();
 
-        leftFlywheel  = hardwareMap.get(DcMotor.class, "6000 RPM motor");
-        rightFlywheel = hardwareMap.get(DcMotor.class, "6000 RPM motor flywheel right");
+        leftFlywheel  = hardwareMap.get(DcMotorEx.class, "6000 RPM motor");
+        rightFlywheel = hardwareMap.get(DcMotorEx.class, "6000 RPM motor flywheel right");
         intake1150    = hardwareMap.get(DcMotor.class, "1150 RPM intake");
 
 
 
         intake1150.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        leftFlywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        rightFlywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         intake1150.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         intake1150.setPower(0);
@@ -134,6 +153,9 @@ public class REDFarEndAuto extends OpMode {
 
     private void updateStateMachine() {
 
+        double leftRPM = leftFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
+        double rightRPM = rightFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
+
         switch (state) {
 
             case DRIVE_TO_SHOOT_1:
@@ -148,54 +170,59 @@ public class REDFarEndAuto extends OpMode {
                 break;
 
             case SHOOT_1:
-                double t = stateTimer.getElapsedTimeSeconds();
+                leftFlywheel.setVelocity(-shootTicksPerSec - 11.6);
+                rightFlywheel.setVelocity(shootTicksPerSec);
 
-                // start flywheels
-//                rightFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//                leftFlywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                leftFlywheel.setPower(leftFlywheelPower);
-                rightFlywheel.setPower(rightFlywheelPower);
-
-                // shoot first two balls
-                // add 3.7 sec to account for farther distance
-                if (t > 6.7) { // original: 3 sec
-                    finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
-                    finalIntakeRight.setPosition(SERVO_FEED_POSITION);
-                }
-
-                // reset final intake servo
-
-                if (t > 7.7) { // original: 4 sec
-                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
-                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
-                }
-
-                // start intake servo to move third ball
-
-                if (t > 8.7) { // original: 5 sec
-                    intake1150.setPower(-1);
-                }
-
-                // because flywheels are still running,
-                // use final intake servo to shoot third ball
-
-                if (t > 9.7) { // original: 6 sec
-                    finalIntakeLeft.setPosition(SERVO_FEED_POSITION);
-                    finalIntakeRight.setPosition(SERVO_FEED_POSITION);
-                }
-
-                // stop all motors because we have no balls
-
-                if (t > 10.7) { // original: 7 sec
-                    // stop flywheels
-                    leftFlywheel.setPower(0);
-                    rightFlywheel.setPower(0);
-                    // reset servo positions
-//                    finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
-//                    finalIntakeRight.setPosition(SERVO_STOP_POSITION);
-                    // stop first intake servo
-                    intake1150.setPower(0);
+                if (stateTimer.getElapsedTimeSeconds() >= 10) {
                     transition(State.FINISHED);
+                }
+
+                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
+                        && !shootLeft) {
+                    shootLeft = true;
+                    timerLeft.reset();
+                }
+                if (Math.abs(rightRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
+                        && !shootRight) {
+                    shootRight = true;
+                    timerRight.reset();
+                }
+
+                if (shootLeft) {
+
+                    if (timerLeft.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
+                        finalIntakeLeft.setPosition(0);
+                    } else if (timerLeft.milliseconds() < prepareSecond) { // same comment as above
+                        finalIntakeLeft.setPosition(20);
+                        intake1150.setPower(IntakeInward);
+                    } else if (timerLeft.milliseconds() < stopIntake) {
+                        intake1150.setPower(0);
+                    } else if (timerLeft.milliseconds() < shootSecond) { // same comment as above
+                        finalIntakeLeft.setPosition(0);
+                    } else {
+                        finalIntakeLeft.setPosition(20);
+                        leftFlywheel.setVelocity(0);
+                        shootLeft = false;
+                        timerLeft.reset();
+                    }
+                }
+                if (shootRight) {
+
+                    if (timerRight.milliseconds() < shootFirst) {  // 500 ms gap between this and above if is risky, if shooting isn't working change this
+                        finalIntakeRight.setPosition(0);
+                    } else if (timerRight.milliseconds() < prepareSecond) { // same comment as above
+                        finalIntakeRight.setPosition(20);
+                        intake1150.setPower(IntakeInward);
+                    } else if (timerRight.milliseconds() < stopIntake) {
+                        intake1150.setPower(0);
+                    } else if (timerRight.milliseconds() < shootSecond) { // same comment as above
+                        finalIntakeRight.setPosition(0);
+                    } else {
+                        finalIntakeRight.setPosition(20);
+                        rightFlywheel.setVelocity(0);
+                        shootRight = false;
+                        timerRight.reset();
+                    }
                 }
                 break;
             case FINISHED:

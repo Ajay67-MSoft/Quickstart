@@ -53,7 +53,6 @@ public class BlueStructureStartingPoint2 extends OpMode {
     private int IntakeOutward = 1;
     private int IntakeNoPower = 0;
 
-
     private ElapsedTime timerLeft = new ElapsedTime();
     private ElapsedTime timerRight = new ElapsedTime();
 
