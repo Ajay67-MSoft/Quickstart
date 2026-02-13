@@ -123,12 +123,20 @@ public class AutoShooterCalibration extends LinearOpMode {
 
             // ---------------- MANUAL RPM ADJUST ----------------
 
+            if (gamepad1.dpad_right) {
+                targetRPM += 50;
+                sleep(150);
+            }
             if (gamepad1.dpad_up) {
-                targetRPM += 25;
+                targetRPM += 5;
+                sleep(150);
+            }
+            if (gamepad1.dpad_left) {
+                targetRPM -= 50;
                 sleep(150);
             }
             if (gamepad1.dpad_down) {
-                targetRPM -= 25;
+                targetRPM -= 5;
                 sleep(150);
             }
 

@@ -1,5 +1,5 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
-//
+
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -51,8 +51,8 @@ public class AutoAimingTest extends LinearOpMode {
     private int IntakeInward = -2;
     private int IntakeOutward = 1;
 
-    private final double[] TY_VALUES = {3.7, 6.37, 10.0, 13.6, 15.8};
-    private final double[] RPM_VALUES = {2925, 2600, 2525, 2375, 2350};
+    private final double[] TY_VALUES = {3.7, 6.37, 10.0, 13.6, 17};
+    private final double[] RPM_VALUES = {2925, 2600, 2525, 2375, 2300};
 
     private double getInterpolatedRPM(double ty) {
         if (ty < 5) return 2925;
@@ -85,13 +85,18 @@ public class AutoAimingTest extends LinearOpMode {
         _1150RPMintake = hardwareMap.get(DcMotor.class, "1150 RPM intake");
 
         _6000RPMmotor = hardwareMap.get(DcMotorEx.class, "6000 RPM motor");
-        _6000RPMmotorflywheelright =
-                hardwareMap.get(DcMotorEx.class, "6000 RPM motor flywheel right");
+        _6000RPMmotorflywheelright = hardwareMap.get(DcMotorEx.class, "6000 RPM motor flywheel right");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         frontRightWheelDS.setDirection(DcMotorEx.Direction.REVERSE);
         backRightWheelDS.setDirection(DcMotorEx.Direction.REVERSE);
+
+        // --- set motors to BRAKE by default ---
+        frontLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         telemetry.setMsTransmissionInterval(11);
         limelight.pipelineSwitch(0);
@@ -112,43 +117,61 @@ public class AutoAimingTest extends LinearOpMode {
 
         while (opModeIsActive()) {
 
+            // --- driver input ---
             y = gamepad1.left_stick_y;
             x = -gamepad1.left_stick_x;
             rx = -gamepad1.right_stick_x * 0.75;
 
             LLResult result = limelight.getLatestResult();
 
-            if (gamepad1.b) {
-                if (result != null && result.isValid()) {
-                    double absTx = Math.abs(result.getTx());
-                    double scale = Math.min(1.0, 0.03 + 0.2 * Math.exp(-absTx / 5.0));
-                    if (result.getTx() > 1) {
-                        rx = -scale;
-                    } else if (result.getTx() < -1) {
-                        rx = scale;
-                    } else {
-                        for (int i = 0; i < 10; i++) {
-                            telemetry.addLine("Aligned with target ----------");
-                        }
-                        rx = 0;
+            // --- auto-aim adjustments only update rx ---
+            if (gamepad1.b && result != null && result.isValid()) {
+                double tx = result.getTx();
+                double absTx = Math.abs(tx);
+
+                double alignedThreshold = 0.75;
+                double minRx = 0.06;
+                double maxRx = 0.2;
+
+                if (absTx <= alignedThreshold) {
+                    rx = 0;
+                    for (int i = 0; i < 10; i++) {
+                        telemetry.addLine("Aligned with target ----------");
                     }
-
-                    Pose3D botpose = result.getBotpose();
-                    telemetry.addData("rx", rx);
-                    telemetry.addData("tx", result.getTx());
-                    telemetry.addData("ty", result.getTy());
-                    telemetry.addData("Botpose", botpose.toString());
                 } else {
-                    telemetry.addLine("No valid Limelight data !_!");
+                    double scale;
+                    if (absTx > 2) {
+                        scale = maxRx;
+                    } else {
+                        scale = Math.pow(absTx / 2.0, 1.5) * maxRx;
+                        if (scale < minRx) scale = minRx;
+                    }
+                    rx = -Math.signum(tx) * scale;
                 }
-}
 
+                telemetry.addData("tx ------", tx);
+                telemetry.addData("rx applied", rx);
 
+                // --- BRAKE while B held ---
+                frontLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                backLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                frontRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                backRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            } else {
+                // FLOAT otherwise
+                frontLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                backLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                frontRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                backRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            }
+
+            // --- drive motors ---
             frontLeftWheelDS.setPower(y + x + rx);
             backLeftWheelDS.setPower(y - x + rx);
             frontRightWheelDS.setPower(y - x - rx);
             backRightWheelDS.setPower(y + x - rx);
 
+            // --- shooter/flywheel logic remains unchanged ---
             SHOOT_RPM = 3100;
             TARGET_SHOOT_RPM = 3100;
 

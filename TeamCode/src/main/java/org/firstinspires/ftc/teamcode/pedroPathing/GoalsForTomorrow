@@ -15,3 +15,5 @@ for different positions that can be cycled through with d-pad up or down.
 be cautious of inconsistent motor and servo names between teleop and auto files
 
 most auto changes are only in blue structure starting point - ill add them to all autos once it works
+
+create constants file

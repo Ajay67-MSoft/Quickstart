@@ -40,10 +40,10 @@ public class REDFarEndAuto extends OpMode {
     private int prepareSecond = 1500;
     private int stopIntake = 3500;
     private int shootSecond = 4500;
-    private double SHOOT_RPM = 2650;
-    private double TARGET_SHOOT_RPM = 2500;
+    private double SHOOT_RPM = 3075; // 2650 (gap 150 from target_shoot_rpm) --> +425 --> 3075
+    private double TARGET_SHOOT_RPM = 3225; // 2500 --> 2925
     private static final double TICKS_PER_REV = 28.0;
-    private final double shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0;;
+    private final double shootTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;;
     private static final double TARGET_RPM = 2000.0;
     private static final double RPM_TOLERANCE = 100;
     private int IntakeInward = -1;
