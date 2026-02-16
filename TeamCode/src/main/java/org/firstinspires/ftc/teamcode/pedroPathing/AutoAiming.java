@@ -91,11 +91,10 @@ public class AutoAiming extends LinearOpMode {
         frontRightWheelDS.setDirection(DcMotor.Direction.REVERSE);
         backRightWheelDS.setDirection(DcMotor.Direction.REVERSE);
 
-        // --- set drive motors to BRAKE ---
-        frontLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        backLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        frontRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        backRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         telemetry.setMsTransmissionInterval(11);
         limelight.pipelineSwitch(0);
