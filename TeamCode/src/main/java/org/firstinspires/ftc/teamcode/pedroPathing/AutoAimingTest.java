@@ -51,11 +51,10 @@ public class AutoAimingTest extends LinearOpMode {
     private int IntakeInward = -2;
     private int IntakeOutward = 1;
 
-    private final double[] TY_VALUES = {3.7, 6.37, 10.0, 13.6, 17};
-    private final double[] RPM_VALUES = {2925, 2600, 2525, 2375, 2300};
+    private final double[] TY_VALUES = {2.8, 5, 6.37, 10.0, 13.6, 17};
+    private final double[] RPM_VALUES = {3100, 2930, 2600, 2525, 2375, 2300};
 
     private double getInterpolatedRPM(double ty) {
-        if (ty < 5) return 2925;
         if (ty <= TY_VALUES[0]) return RPM_VALUES[0];
         if (ty >= TY_VALUES[TY_VALUES.length - 1]) return RPM_VALUES[RPM_VALUES.length - 1];
         for (int i = 0; i < TY_VALUES.length - 1; i++) {

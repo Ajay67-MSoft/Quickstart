@@ -230,7 +230,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 leftFlywheel.setVelocity(-shootTicksPerSec);
                 rightFlywheel.setVelocity(shootTicksPerSec);
 
-                if (stateTimer.getElapsedTimeSeconds() >= 7) {
+                if (stateTimer.getElapsedTimeSeconds() >= 10) {
                     transition(State.DRIVE_TO_COLLECT_1);
                 }
 
@@ -287,7 +287,7 @@ public class BlueStructureStartingPoint2 extends OpMode {
                 leftFlywheel.setVelocity(-shootTicksPerSec);
                 rightFlywheel.setVelocity(shootTicksPerSec);
 
-                if (stateTimer.getElapsedTimeSeconds() >= 7) {
+                if (stateTimer.getElapsedTimeSeconds() >= 10) {
                     transition(State.DRIVE_OUTSIDE);
                     follower.followPath(pathDriveToEnd);
                 }

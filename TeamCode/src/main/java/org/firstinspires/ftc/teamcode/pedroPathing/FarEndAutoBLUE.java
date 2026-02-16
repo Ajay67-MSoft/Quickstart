@@ -57,7 +57,7 @@ public class FarEndAutoBLUE extends OpMode {
     // Mirrored from RED Far End Auto
     private final Pose startPose = new Pose(144 - 88, 8.2, Math.toRadians(90)); // mirror x
     private final Pose shootPose = new Pose(144 - 83.9802306425, 15.182866556836899, Math.toRadians(180 - 66));
-    private final Pose endPose   = new Pose(144 - 95, 32, Math.toRadians(180));
+    private final Pose endPose   = new Pose(42, 32, Math.toRadians(180));
 
     /* ================= PATHS ================= */
     private PathChain pathShoot1;
@@ -147,7 +147,7 @@ public class FarEndAutoBLUE extends OpMode {
                 leftFlywheel.setVelocity(-shootTicksPerSec - 11.6);
                 rightFlywheel.setVelocity(shootTicksPerSec);
 
-                if (stateTimer.getElapsedTimeSeconds() >= 10) {
+                if (stateTimer.getElapsedTimeSeconds() >= 15) {
                     transition(State.FINISHED);
                 }
 

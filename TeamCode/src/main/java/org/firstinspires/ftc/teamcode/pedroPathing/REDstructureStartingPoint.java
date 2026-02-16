@@ -70,19 +70,19 @@ public class REDstructureStartingPoint extends OpMode {
             new Pose(119.253044655 + 8, 128.60622462787552, Math.toRadians(37));
 
     private final Pose shootPose =
-            new Pose(92.5575101488498, 104.83355886332882, Math.toRadians(35));
+            new Pose(92.5575101488498 + 2.5, 104.83355886332882, Math.toRadians(35));
 
     private final Pose collect1 =
             new Pose(99.6, 84, Math.toRadians(0));
 
     private final Pose collect2 =
-            new Pose(129.0, 80, Math.toRadians(0));
+            new Pose(130.0, 80, Math.toRadians(0));
 
     private final Pose shootPose2 =
-            new Pose(92.5575101488498, 104.83355886332882, Math.toRadians(42.5));
+            new Pose(92.5575101488498 + 10, 104.83355886332882 - 2, Math.toRadians(42.5 - 1));
 
     private final Pose endPose =
-            new Pose(99.6 - 8, 72, Math.toRadians(0));
+            new Pose(99.6 + 16, 72, Math.toRadians(0));
 
     /* ================= PATHS ================= */
     private PathChain pathShoot1;
@@ -213,7 +213,7 @@ public class REDstructureStartingPoint extends OpMode {
                 leftFlywheel.setVelocity(-shootTicksPerSec);
                 rightFlywheel.setVelocity(shootTicksPerSec);
 
-                if (stateTimer.getElapsedTimeSeconds() >= 8) {
+                if (stateTimer.getElapsedTimeSeconds() >= 10) {
                     transition(State.DRIVE_TO_COLLECT_1);
                     follower.followPath(pathCollect1);
                 }
@@ -262,7 +262,7 @@ public class REDstructureStartingPoint extends OpMode {
                 leftFlywheel.setVelocity(-shootTicksPerSec);
                 rightFlywheel.setVelocity(shootTicksPerSec);
 
-                if (stateTimer.getElapsedTimeSeconds() >= 8) {
+                if (stateTimer.getElapsedTimeSeconds() >= 10) {
                     transition(State.DRIVE_OUTSIDE);
                     follower.followPath(pathDriveToEnd);
                 }

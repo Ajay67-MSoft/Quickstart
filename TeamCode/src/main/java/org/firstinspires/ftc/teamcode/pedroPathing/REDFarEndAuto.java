@@ -74,7 +74,7 @@ public class REDFarEndAuto extends OpMode {
 
     private final Pose startPose = new Pose(88, 8.2, Math.toRadians(90));
     private final Pose shootPose = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66));
-    private final Pose endPose = new Pose(95, 36, Math.toRadians(0));
+    private final Pose endPose = new Pose(100, 32, Math.toRadians(0));
 
     /* ================= PATHS ================= */
 
@@ -173,7 +173,7 @@ public class REDFarEndAuto extends OpMode {
                 leftFlywheel.setVelocity(-shootTicksPerSec - 11.6);
                 rightFlywheel.setVelocity(shootTicksPerSec);
 
-                if (stateTimer.getElapsedTimeSeconds() >= 10) {
+                if (stateTimer.getElapsedTimeSeconds() >= 15) {
                     transition(State.FINISHED);
                 }
 
