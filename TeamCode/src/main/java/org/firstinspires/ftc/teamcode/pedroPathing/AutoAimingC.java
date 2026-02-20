@@ -63,8 +63,9 @@ public class AutoAimingC extends LinearOpMode {
 
         _1150RPMintake = hardwareMap.get(DcMotor.class, "1150 RPM intake");
 
-        _6000RPMmotor = hardwareMap.get(DcMotorEx.class, "_6000RPMmotor");
-        _6000RPMmotorflywheelright = hardwareMap.get(DcMotorEx.class, "_6000RPMmotorflywheelright");
+        // Fixed hardware names to match actual robot configuration
+        _6000RPMmotor = hardwareMap.get(DcMotorEx.class, "6000 RPM motor");
+        _6000RPMmotorflywheelright = hardwareMap.get(DcMotorEx.class, "6000 RPM motor flywheel right");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
@@ -186,18 +187,13 @@ public class AutoAimingC extends LinearOpMode {
                 }
             }
 
-            // --- Shooting Sequence with Dual-Tolerance (Hysteresis) ---
+            // --- Shooting Sequence ---
             if (shoot) {
                 _6000RPMmotor.setVelocity(-targetTicksPerSec);
                 _6000RPMmotorflywheelright.setVelocity(targetTicksPerSec);
 
-                // If feeder is already running (shooting has begun), use the wider stall tolerance
-                // Otherwise, use the tighter initial tolerance to start the shot
-                double currentTolerance = (finalIntakeServo.getPower() > 0.1) 
-                        ? RobotConfig.SHOOTER_STALL_TOLERANCE 
-                        : RobotConfig.SHOOTER_RPM_TOLERANCE;
-
-                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - currentTolerance) {
+                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RobotConfig.SHOOTER_RPM_TOLERANCE
+                        && Math.abs(leftRPM) <= TARGET_SHOOT_RPM + RobotConfig.SHOOTER_RPM_TOLERANCE) {
                     finalIntakeServo.setPower(RobotConfig.FEEDER_SERVO_POWER_SHOOT);
                     FinalIntakeLeftDS.setPower(RobotConfig.FEEDER_SERVO_POWER_SHOOT);
                     _1150RPMintake.setPower(RobotConfig.INTAKE_MOTOR_POWER_INWARD);
