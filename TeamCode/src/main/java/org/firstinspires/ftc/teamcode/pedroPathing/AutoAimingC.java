@@ -43,6 +43,7 @@ public class AutoAimingC extends LinearOpMode {
     private boolean shooterActive = false;
     private boolean reverseFlywheels = false;
     private ElapsedTime timer = new ElapsedTime();
+    private ElapsedTime shootTimer = new ElapsedTime(); // Timer to handle shooting duration/oscillation
 
     private double TARGET_SHOOT_RPM = 3100;
     private double targetTicksPerSec;
@@ -96,6 +97,9 @@ public class AutoAimingC extends LinearOpMode {
         _6000RPMmotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, RobotConfig.SHOOTER_PIDF);
         _6000RPMmotorflywheelright.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, RobotConfig.SHOOTER_PIDF);
 
+        // Initialize shootTimer to a value larger than SHOOT_DURATION_MS to prevent accidental firing at start
+        shootTimer.reset();
+
         waitForStart();
 
         while (opModeIsActive()) {
@@ -141,7 +145,7 @@ public class AutoAimingC extends LinearOpMode {
             // --- Controls ---
             if (gamepad1.yWasPressed()) {
                 shooterActive = true;
-                shoot = true;
+                shoot = true;      // start shooting sequence
                 reverseFlywheels = false;
                 timer.reset();
             }
@@ -187,13 +191,22 @@ public class AutoAimingC extends LinearOpMode {
                 }
             }
 
-            // --- Shooting Sequence ---
+            // --- Shooting Sequence with Minimum Duration (Anti-Oscillation) ---
             if (shoot) {
                 _6000RPMmotor.setVelocity(-targetTicksPerSec);
                 _6000RPMmotorflywheelright.setVelocity(targetTicksPerSec);
 
-                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RobotConfig.SHOOTER_RPM_TOLERANCE
-                        && Math.abs(leftRPM) <= TARGET_SHOOT_RPM + RobotConfig.SHOOTER_RPM_TOLERANCE) {
+                // Check if current RPM is within tolerance
+                boolean rpmAtTarget = Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RobotConfig.SHOOTER_RPM_TOLERANCE
+                        && Math.abs(leftRPM) <= TARGET_SHOOT_RPM + RobotConfig.SHOOTER_RPM_TOLERANCE;
+
+                // If RPM is at target, reset the timer to keep the feeder active
+                if (rpmAtTarget) {
+                    shootTimer.reset();
+                }
+
+                // Maintain shooting action if we are at target OR if it's been less than SHOOT_DURATION_MS since last hit
+                if (shootTimer.milliseconds() < RobotConfig.SHOOT_DURATION_MS) {
                     finalIntakeServo.setPower(RobotConfig.FEEDER_SERVO_POWER_SHOOT);
                     FinalIntakeLeftDS.setPower(RobotConfig.FEEDER_SERVO_POWER_SHOOT);
                     _1150RPMintake.setPower(RobotConfig.INTAKE_MOTOR_POWER_INWARD);
