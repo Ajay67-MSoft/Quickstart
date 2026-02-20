@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
@@ -16,6 +15,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
  * TeleOp OpMode for Auto Aiming and Shooting.
  * This code handles robot movement, Limelight-based auto-aiming, 
  * flywheel speed interpolation based on distance, and an automated shooting sequence.
+ * 
+ * Refactored to use RobotConfig.java for shared constants and tuning.
  */
 @TeleOp(name = "AutoAiming ----------------------------------")
 public class AutoAiming extends LinearOpMode {
@@ -45,48 +46,13 @@ public class AutoAiming extends LinearOpMode {
     private boolean reverseFlywheels = false;// Are flywheels reversing to clear jams?
     private ElapsedTime timer = new ElapsedTime();
 
-    // Constants for motor calculations
-    private static final double TICKS_PER_REV = 28;
-    private static final double RPM_TOLERANCE = 100; // How close to target RPM we must be to fire
-
     private double TARGET_SHOOT_RPM = 3100;
     private double targetTicksPerSec;
 
-    // Intake power settings
-    private int IntakeInward = -2;
-    private int IntakeOutward = 1;
-
-    // Servo power constants
-    private static final double F_Intake_Shoot = 1.0;
-    private static final double F_Intake_Backwards = -1.0;
-    private static final double F_Intake_Hold = 0.0;
-
-    // Distance-to-RPM Lookup Tables (TY is vertical angle from Limelight)
-    private final double[] TY_VALUES = {2.8, 5, 6.37, 10.0, 13.6, 17};
-    private final double[] RPM_VALUES = {3100, 2930, 2600, 2525, 2375, 2300};
-
-    /**
-     * Calculates the required Flywheel RPM based on the vertical angle (ty) from Limelight.
-     * Uses linear interpolation to find values between known data points.
-     */
-    private double getInterpolatedRPM(double ty) {
-        if (ty <= TY_VALUES[0]) return RPM_VALUES[0];
-        if (ty >= TY_VALUES[TY_VALUES.length - 1]) return RPM_VALUES[RPM_VALUES.length - 1];
-        for (int i = 0; i < TY_VALUES.length - 1; i++) {
-            double tyLow = TY_VALUES[i];
-            double tyHigh = TY_VALUES[i + 1];
-            if (ty >= tyLow && ty <= tyHigh) {
-                double rpmLow = RPM_VALUES[i];
-                double rpmHigh = RPM_VALUES[i + 1];
-                double percent = (ty - tyLow) / (tyHigh - tyLow);
-                return rpmLow + percent * (rpmHigh - rpmLow);
-            }
-        }
-        return RPM_VALUES[0];
-    }
-
     @Override
     public void runOpMode() {
+        // Load external configuration from CSV if present
+        RobotConfig.loadLookupTable();
 
         // --- Hardware Mapping (Linking code to actual robot parts) ---
         FinalIntakeLeftDS = hardwareMap.get(CRServo.class, "FinalIntakeLeftDS");
@@ -119,18 +85,17 @@ public class AutoAiming extends LinearOpMode {
         limelight.start();
 
         // Initial servo states
-        FinalIntakeLeftDS.setPower(F_Intake_Hold);
+        FinalIntakeLeftDS.setPower(RobotConfig.FEEDER_SERVO_POWER_HOLD);
         FinalIntakeLeftDS.setDirection(CRServo.Direction.REVERSE);
-        finalIntakeServo.setPower(F_Intake_Hold);
+        finalIntakeServo.setPower(RobotConfig.FEEDER_SERVO_POWER_HOLD);
 
         // Configure flywheel motors for velocity control
         _6000RPMmotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         _6000RPMmotorflywheelright.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // --- PIDF for flywheel motors (Advanced "Cruise Control" for speed) ---
-        PIDFCoefficients shooterPIDF = new PIDFCoefficients(0.011, 0.0, 0.001, 13.5);
-        _6000RPMmotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
-        _6000RPMmotorflywheelright.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
+        _6000RPMmotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, RobotConfig.SHOOTER_PIDF);
+        _6000RPMmotorflywheelright.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, RobotConfig.SHOOTER_PIDF);
 
         waitForStart();
 
@@ -148,9 +113,9 @@ public class AutoAiming extends LinearOpMode {
             if (gamepad1.b && result != null && result.isValid()) {
                 double tx = result.getTx(); // Horizontal offset from target
                 double absTx = Math.abs(tx);
-                double alignedThreshold = 0.75; // How many degrees off-center we accept
-                double minRx = 0.06;
-                double maxRx = 0.2;
+                double alignedThreshold = RobotConfig.AIM_TOLERANCE_DEGREES; // How many degrees off-center we accept
+                double minRx = RobotConfig.AIM_MIN_ROTATION_POWER;
+                double maxRx = RobotConfig.AIM_MAX_ROTATION_POWER;
 
                 if (absTx <= alignedThreshold) {
                     rx = 0; // Locked on target
@@ -171,12 +136,12 @@ public class AutoAiming extends LinearOpMode {
             // --- Target RPM Calculation ---
             // If Limelight sees target, calculate RPM based on distance (TY)
             TARGET_SHOOT_RPM = 3100;
-            if (result != null && result.isValid()) TARGET_SHOOT_RPM = getInterpolatedRPM(result.getTy());
-            targetTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;
+            if (result != null && result.isValid()) TARGET_SHOOT_RPM = RobotConfig.getInterpolatedRPM(result.getTy());
+            targetTicksPerSec = TARGET_SHOOT_RPM * RobotConfig.SHOOTER_TICKS_PER_REV / 60.0;
 
             // Measure current flywheel speeds
-            double leftRPM = _6000RPMmotor.getVelocity() * 60.0 / TICKS_PER_REV;
-            double rightRPM = _6000RPMmotorflywheelright.getVelocity() * 60.0 / TICKS_PER_REV;
+            double leftRPM = _6000RPMmotor.getVelocity() * 60.0 / RobotConfig.SHOOTER_TICKS_PER_REV;
+            double rightRPM = _6000RPMmotorflywheelright.getVelocity() * 60.0 / RobotConfig.SHOOTER_TICKS_PER_REV;
 
             // --- Shooter Controls ---
             if (gamepad1.yWasPressed()) {
@@ -191,7 +156,7 @@ public class AutoAiming extends LinearOpMode {
                 shoot = false;
                 reverseFlywheels = false;
                 // Idle speed
-                double idleTicks = 2400 * TICKS_PER_REV / 60.0;
+                double idleTicks = RobotConfig.SHOOTER_IDLE_RPM * RobotConfig.SHOOTER_TICKS_PER_REV / 60.0;
                 _6000RPMmotor.setVelocity(-idleTicks);
                 _6000RPMmotorflywheelright.setVelocity(idleTicks);
             }
@@ -216,17 +181,17 @@ public class AutoAiming extends LinearOpMode {
             // --- Manual Intake (Bumpers) ---
             if (!shoot) { // Only allow manual intake if NOT shooting
                 if (gamepad1.right_bumper) {
-                    _1150RPMintake.setPower(IntakeInward);
-                    finalIntakeServo.setPower(F_Intake_Backwards); // Hold ball back
-                    FinalIntakeLeftDS.setPower(F_Intake_Backwards);
+                    _1150RPMintake.setPower(RobotConfig.INTAKE_MOTOR_POWER_INWARD);
+                    finalIntakeServo.setPower(RobotConfig.FEEDER_SERVO_POWER_REVERSE); // Hold ball back
+                    FinalIntakeLeftDS.setPower(RobotConfig.FEEDER_SERVO_POWER_REVERSE);
                 } else if (gamepad1.left_bumper) {
-                    _1150RPMintake.setPower(IntakeOutward);
-                    finalIntakeServo.setPower(F_Intake_Hold);
-                    FinalIntakeLeftDS.setPower(F_Intake_Hold);
+                    _1150RPMintake.setPower(RobotConfig.INTAKE_MOTOR_POWER_OUTWARD);
+                    finalIntakeServo.setPower(RobotConfig.FEEDER_SERVO_POWER_HOLD);
+                    FinalIntakeLeftDS.setPower(RobotConfig.FEEDER_SERVO_POWER_HOLD);
                 } else {
                     _1150RPMintake.setPower(0);
-                    finalIntakeServo.setPower(F_Intake_Hold);
-                    FinalIntakeLeftDS.setPower(F_Intake_Hold);
+                    finalIntakeServo.setPower(RobotConfig.FEEDER_SERVO_POWER_HOLD);
+                    FinalIntakeLeftDS.setPower(RobotConfig.FEEDER_SERVO_POWER_HOLD);
                 }
             }
 
@@ -237,32 +202,30 @@ public class AutoAiming extends LinearOpMode {
                 _6000RPMmotorflywheelright.setVelocity(targetTicksPerSec);
 
                 // Step 2: Check if flywheels are at the correct speed
-                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
-                        && Math.abs(leftRPM) <= TARGET_SHOOT_RPM + RPM_TOLERANCE) {
+                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RobotConfig.SHOOTER_RPM_TOLERANCE
+                        && Math.abs(leftRPM) <= TARGET_SHOOT_RPM + RobotConfig.SHOOTER_RPM_TOLERANCE) {
 
                     // Step 3: Speed is correct → Run feeders to fire the ball
-                    finalIntakeServo.setPower(F_Intake_Shoot);
-                    FinalIntakeLeftDS.setPower(F_Intake_Shoot);
-                    _1150RPMintake.setPower(IntakeInward);
+                    finalIntakeServo.setPower(RobotConfig.FEEDER_SERVO_POWER_SHOOT);
+                    FinalIntakeLeftDS.setPower(RobotConfig.FEEDER_SERVO_POWER_SHOOT);
+                    _1150RPMintake.setPower(RobotConfig.INTAKE_MOTOR_POWER_INWARD);
                 } else {
                     // Step 4: Not at speed yet → Keep feeders stopped
-                    finalIntakeServo.setPower(F_Intake_Hold);
-                    FinalIntakeLeftDS.setPower(F_Intake_Hold);
+                    finalIntakeServo.setPower(RobotConfig.FEEDER_SERVO_POWER_HOLD);
+                    FinalIntakeLeftDS.setPower(RobotConfig.FEEDER_SERVO_POWER_HOLD);
                     _1150RPMintake.setPower(0);
                 }
             }
 
             // --- Flywheel Idle Logic ---
             if (!shoot && !reverseFlywheels && !shooterActive) {
-                double idleTicks = 2400 * TICKS_PER_REV / 60.0;
+                double idleTicks = RobotConfig.SHOOTER_IDLE_RPM * RobotConfig.SHOOTER_TICKS_PER_REV / 60.0;
                 _6000RPMmotor.setVelocity(-idleTicks);
                 _6000RPMmotorflywheelright.setVelocity(idleTicks);
             }
 
             // --- Telemetry Display on Driver Station ---
             telemetry.addData("shoot:", shoot);
-            telemetry.addData("shooterActive:", shooterActive);
-            telemetry.addData("reverseFlywheels:", reverseFlywheels);
             telemetry.addData("Target RPM:", TARGET_SHOOT_RPM);
             telemetry.addData("Left Flywheel RPM:", Math.round(leftRPM));
             telemetry.addData("Right Flywheel RPM:", Math.round(rightRPM));
