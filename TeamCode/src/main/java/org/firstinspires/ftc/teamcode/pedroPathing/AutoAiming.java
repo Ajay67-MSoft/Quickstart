@@ -12,47 +12,63 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
+/**
+ * TeleOp OpMode for Auto Aiming and Shooting.
+ * This code handles robot movement, Limelight-based auto-aiming, 
+ * flywheel speed interpolation based on distance, and an automated shooting sequence.
+ */
 @TeleOp(name = "AutoAiming ----------------------------------")
 public class AutoAiming extends LinearOpMode {
 
-    private CRServo FinalIntakeLeftDS;
-    private CRServo finalIntakeServo;
+    // --- Hardware Declarations ---
+    private CRServo FinalIntakeLeftDS;   // Feeder servo left
+    private CRServo finalIntakeServo;    // Feeder servo right
 
     private DcMotor frontLeftWheelDS;
     private DcMotor backLeftWheelDS;
     private DcMotor frontRightWheelDS;
     private DcMotor backRightWheelDS;
 
-    private DcMotor _1150RPMintake;
+    private DcMotor _1150RPMintake;      // Main intake motor
 
-    private DcMotorEx _6000RPMmotor;
-    private DcMotorEx _6000RPMmotorflywheelright;
+    private DcMotorEx _6000RPMmotor;     // Left flywheel motor
+    private DcMotorEx _6000RPMmotorflywheelright; // Right flywheel motor
 
-    private Limelight3A limelight;
+    private Limelight3A limelight;       // Vision sensor
 
+    // Drive variables
     private double x, y, rx;
 
-    private boolean shoot = false;
-    private boolean shooterActive = false;
-    private boolean reverseFlywheels = false;
+    // State variables
+    private boolean shoot = false;           // Is the shooting sequence active?
+    private boolean shooterActive = false;   // Is the shooter toggled on?
+    private boolean reverseFlywheels = false;// Are flywheels reversing to clear jams?
     private ElapsedTime timer = new ElapsedTime();
 
+    // Constants for motor calculations
     private static final double TICKS_PER_REV = 28;
-    private static final double RPM_TOLERANCE = 100;
+    private static final double RPM_TOLERANCE = 100; // How close to target RPM we must be to fire
 
     private double TARGET_SHOOT_RPM = 3100;
     private double targetTicksPerSec;
 
+    // Intake power settings
     private int IntakeInward = -2;
     private int IntakeOutward = 1;
 
+    // Servo power constants
     private static final double F_Intake_Shoot = 1.0;
     private static final double F_Intake_Backwards = -1.0;
     private static final double F_Intake_Hold = 0.0;
 
+    // Distance-to-RPM Lookup Tables (TY is vertical angle from Limelight)
     private final double[] TY_VALUES = {2.8, 5, 6.37, 10.0, 13.6, 17};
     private final double[] RPM_VALUES = {3100, 2930, 2600, 2525, 2375, 2300};
 
+    /**
+     * Calculates the required Flywheel RPM based on the vertical angle (ty) from Limelight.
+     * Uses linear interpolation to find values between known data points.
+     */
     private double getInterpolatedRPM(double ty) {
         if (ty <= TY_VALUES[0]) return RPM_VALUES[0];
         if (ty >= TY_VALUES[TY_VALUES.length - 1]) return RPM_VALUES[RPM_VALUES.length - 1];
@@ -72,7 +88,7 @@ public class AutoAiming extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        // --- hardware mapping ---
+        // --- Hardware Mapping (Linking code to actual robot parts) ---
         FinalIntakeLeftDS = hardwareMap.get(CRServo.class, "FinalIntakeLeftDS");
         finalIntakeServo = hardwareMap.get(CRServo.class, "finalIntakeServo");
 
@@ -88,26 +104,30 @@ public class AutoAiming extends LinearOpMode {
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
+        // Set motor directions for proper chassis movement
         frontRightWheelDS.setDirection(DcMotor.Direction.REVERSE);
         backRightWheelDS.setDirection(DcMotor.Direction.REVERSE);
 
+        // Allow motors to spin freely when power is 0 (prevents jerky stops)
         frontLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         backLeftWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         frontRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         backRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        telemetry.setMsTransmissionInterval(11);
-        limelight.pipelineSwitch(0);
+        telemetry.setMsTransmissionInterval(11); // Faster telemetry updates
+        limelight.pipelineSwitch(0);             // Use standard vision pipeline
         limelight.start();
 
+        // Initial servo states
         FinalIntakeLeftDS.setPower(F_Intake_Hold);
         FinalIntakeLeftDS.setDirection(CRServo.Direction.REVERSE);
         finalIntakeServo.setPower(F_Intake_Hold);
 
+        // Configure flywheel motors for velocity control
         _6000RPMmotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         _6000RPMmotorflywheelright.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        // --- PIDF for flywheel motors ---
+        // --- PIDF for flywheel motors (Advanced "Cruise Control" for speed) ---
         PIDFCoefficients shooterPIDF = new PIDFCoefficients(0.011, 0.0, 0.001, 13.5);
         _6000RPMmotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
         _6000RPMmotorflywheelright.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
@@ -116,47 +136,52 @@ public class AutoAiming extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            // --- driver input ---
+            // --- Read Driver Joystick Input ---
             y = gamepad1.left_stick_y;
             x = -gamepad1.left_stick_x;
             rx = -gamepad1.right_stick_x * 0.75;
 
+            // Get vision data from Limelight
             LLResult result = limelight.getLatestResult();
 
-            // --- auto-aim ---
+            // --- Auto-Aim Logic (Hold B Button) ---
             if (gamepad1.b && result != null && result.isValid()) {
-                double tx = result.getTx();
+                double tx = result.getTx(); // Horizontal offset from target
                 double absTx = Math.abs(tx);
-                double alignedThreshold = 0.75;
+                double alignedThreshold = 0.75; // How many degrees off-center we accept
                 double minRx = 0.06;
                 double maxRx = 0.2;
 
-                if (absTx <= alignedThreshold) rx = 0;
-                else {
+                if (absTx <= alignedThreshold) {
+                    rx = 0; // Locked on target
+                } else {
+                    // Calculate rotation speed: the further away, the faster it turns
                     double scale = (absTx > 2) ? maxRx : Math.pow(absTx / 2.0, 1.5) * maxRx;
                     if (scale < minRx) scale = minRx;
                     rx = -Math.signum(tx) * scale;
                 }
             }
 
-            // --- drive ---
+            // --- Apply Chassis Movement ---
             frontLeftWheelDS.setPower(y + x + rx);
             backLeftWheelDS.setPower(y - x + rx);
             frontRightWheelDS.setPower(y - x - rx);
             backRightWheelDS.setPower(y + x - rx);
 
-            // --- target RPM ---
+            // --- Target RPM Calculation ---
+            // If Limelight sees target, calculate RPM based on distance (TY)
             TARGET_SHOOT_RPM = 3100;
             if (result != null && result.isValid()) TARGET_SHOOT_RPM = getInterpolatedRPM(result.getTy());
             targetTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;
 
+            // Measure current flywheel speeds
             double leftRPM = _6000RPMmotor.getVelocity() * 60.0 / TICKS_PER_REV;
             double rightRPM = _6000RPMmotorflywheelright.getVelocity() * 60.0 / TICKS_PER_REV;
 
-            // --- controls ---
+            // --- Shooter Controls ---
             if (gamepad1.yWasPressed()) {
                 shooterActive = true;
-                shoot = true;      // start shooting sequence
+                shoot = true;      // Start the shooting sequence
                 reverseFlywheels = false;
                 timer.reset();
             }
@@ -165,21 +190,22 @@ public class AutoAiming extends LinearOpMode {
                 shooterActive = false;
                 shoot = false;
                 reverseFlywheels = false;
+                // Idle speed
                 double idleTicks = 2400 * TICKS_PER_REV / 60.0;
                 _6000RPMmotor.setVelocity(-idleTicks);
                 _6000RPMmotorflywheelright.setVelocity(idleTicks);
             }
 
-            // --- X press: reverse flywheels once ---
+            // --- X Button: Reverse flywheels once to clear jams ---
             if (gamepad1.x && !reverseFlywheels) {
                 shooterActive = false;
                 shoot = false;
                 reverseFlywheels = true;
-                _6000RPMmotor.setVelocity(targetTicksPerSec);          // left reversed
-                _6000RPMmotorflywheelright.setVelocity(-targetTicksPerSec); // right reversed
+                _6000RPMmotor.setVelocity(targetTicksPerSec);
+                _6000RPMmotorflywheelright.setVelocity(-targetTicksPerSec);
             }
 
-            // --- DPad Down: Limelight telemetry ---
+            // --- DPad Down: View Limelight Telemetry for debugging ---
             if (gamepad1.dpad_down && result != null && result.isValid()) {
                 Pose3D botpose = result.getBotpose();
                 telemetry.addData("tx", result.getTx());
@@ -187,11 +213,11 @@ public class AutoAiming extends LinearOpMode {
                 telemetry.addData("Botpose", botpose.toString());
             }
 
-            // --- manual intake (bumpers) ---
-            if (!shoot) {
+            // --- Manual Intake (Bumpers) ---
+            if (!shoot) { // Only allow manual intake if NOT shooting
                 if (gamepad1.right_bumper) {
                     _1150RPMintake.setPower(IntakeInward);
-                    finalIntakeServo.setPower(F_Intake_Backwards);
+                    finalIntakeServo.setPower(F_Intake_Backwards); // Hold ball back
                     FinalIntakeLeftDS.setPower(F_Intake_Backwards);
                 } else if (gamepad1.left_bumper) {
                     _1150RPMintake.setPower(IntakeOutward);
@@ -204,40 +230,36 @@ public class AutoAiming extends LinearOpMode {
                 }
             }
 
-            // --- shooting sequence ---
-            // --- shooting sequence ---
+            // --- Intelligent Shooting Sequence ---
             if (shoot) {
-                // spin flywheels toward target
+                // Step 1: Spin flywheels toward target RPM
                 _6000RPMmotor.setVelocity(-targetTicksPerSec);
                 _6000RPMmotorflywheelright.setVelocity(targetTicksPerSec);
 
-                // check if flywheels are within tolerance
+                // Step 2: Check if flywheels are at the correct speed
                 if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE
                         && Math.abs(leftRPM) <= TARGET_SHOOT_RPM + RPM_TOLERANCE) {
 
-                    // flywheels are ready → activate final intake to shoot
+                    // Step 3: Speed is correct → Run feeders to fire the ball
                     finalIntakeServo.setPower(F_Intake_Shoot);
                     FinalIntakeLeftDS.setPower(F_Intake_Shoot);
-
-                    // optionally, run main intake if needed in intake mode
                     _1150RPMintake.setPower(IntakeInward);
                 } else {
-                    // flywheels not at target → stop intake and final intake
+                    // Step 4: Not at speed yet → Keep feeders stopped
                     finalIntakeServo.setPower(F_Intake_Hold);
                     FinalIntakeLeftDS.setPower(F_Intake_Hold);
                     _1150RPMintake.setPower(0);
                 }
             }
 
-
-            // --- flywheel idle if nothing active ---
+            // --- Flywheel Idle Logic ---
             if (!shoot && !reverseFlywheels && !shooterActive) {
                 double idleTicks = 2400 * TICKS_PER_REV / 60.0;
                 _6000RPMmotor.setVelocity(-idleTicks);
                 _6000RPMmotorflywheelright.setVelocity(idleTicks);
             }
 
-            // --- telemetry ---
+            // --- Telemetry Display on Driver Station ---
             telemetry.addData("shoot:", shoot);
             telemetry.addData("shooterActive:", shooterActive);
             telemetry.addData("reverseFlywheels:", reverseFlywheels);
