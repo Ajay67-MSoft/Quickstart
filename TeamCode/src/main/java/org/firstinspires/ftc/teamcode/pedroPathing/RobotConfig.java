@@ -17,7 +17,7 @@ public class RobotConfig {
     public static double SHOOTER_TICKS_PER_REV = 28;
     public static double SHOOTER_RPM_TOLERANCE = 100;    // Initial tolerance to start firing
     public static double SHOOTER_STALL_TOLERANCE = 350; // Leeway once shooting to prevent stalling
-    public static double SHOOTER_IDLE_RPM = 2400;
+    public static double SHOOTER_IDLE_RPM = 2800;
     public static double SHOOT_DURATION_MS = 500;       // Minimum time to keep feeder running once triggered
     public static PIDFCoefficients SHOOTER_PIDF = new PIDFCoefficients(0.011, 0.0, 0.001, 13.5);
 
