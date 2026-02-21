@@ -53,7 +53,7 @@ public class SetPower extends LinearOpMode {
 
     private final double[] TY_VALUES = {2.8, 5, 6.37, 10.0, 13.6, 17};
     private final double[] RPM_VALUES = {3100, 2930, 2400, 2325, 2175, 2100};
-    private final double[] RPM_TOLERANCE_VALUES = {100, 125, 150, 175, 200, 225};
+    private final double[] RPM_TOLERANCE_VALUES = {100, 125, 150, 150, 150, 150};
 
     private double getInterpolatedRPM(double ty) {
         if (ty <= TY_VALUES[0]) return RPM_VALUES[0];
