@@ -35,6 +35,7 @@ public class AutoAiming extends LinearOpMode {
     private boolean shoot = false;
     private boolean shooterActive = false;
     private boolean reverseFlywheels = false;
+    private boolean activateFinalIntakeTemporary = false;
     private ElapsedTime timer = new ElapsedTime();
 
     private static final double TICKS_PER_REV = 28;
@@ -107,8 +108,8 @@ public class AutoAiming extends LinearOpMode {
         _6000RPMmotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         _6000RPMmotorflywheelright.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        // --- PIDF for flywheel motors ---
-        PIDFCoefficients shooterPIDF = new PIDFCoefficients(0.011, 0.0, 0.001, 13.5);
+        // --- PIDF for flywheel motors --- // target 2500 2600
+        PIDFCoefficients shooterPIDF = new PIDFCoefficients(0.21, 0.001, 0.001, 13.5);
         _6000RPMmotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
         _6000RPMmotorflywheelright.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
 
@@ -216,6 +217,7 @@ public class AutoAiming extends LinearOpMode {
                         && Math.abs(leftRPM) <= TARGET_SHOOT_RPM + RPM_TOLERANCE) {
 
                     // flywheels are ready → activate final intake to shoot
+                    activateFinalIntakeTemporary = true;
                     finalIntakeServo.setPower(F_Intake_Shoot);
                     FinalIntakeLeftDS.setPower(F_Intake_Shoot);
 
@@ -226,6 +228,7 @@ public class AutoAiming extends LinearOpMode {
                     finalIntakeServo.setPower(F_Intake_Hold);
                     FinalIntakeLeftDS.setPower(F_Intake_Hold);
                     _1150RPMintake.setPower(0);
+                    activateFinalIntakeTemporary = false;
                 }
             }
 
@@ -244,6 +247,7 @@ public class AutoAiming extends LinearOpMode {
             telemetry.addData("Target RPM:", TARGET_SHOOT_RPM);
             telemetry.addData("Left Flywheel RPM:", Math.round(leftRPM));
             telemetry.addData("Right Flywheel RPM:", Math.round(rightRPM));
+            telemetry.addData("Activate Flywheels:", activateFinalIntakeTemporary);
             telemetry.update();
         }
     }
