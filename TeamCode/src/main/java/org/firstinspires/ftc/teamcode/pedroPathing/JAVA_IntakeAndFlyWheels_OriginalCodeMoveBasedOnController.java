@@ -48,14 +48,14 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
             while (opModeIsActive()) {
                 // Put loop blocks here.
                 if (gamepad1.left_bumper) {
-                    FinalIntakeLeftDS.setPower(0);
+                    FinalIntakeLeftDS.setPower(-1);
                 } else {
-                    FinalIntakeLeftDS.setPower(1);
+                    FinalIntakeLeftDS.setPower(0);
                 }
                 if (gamepad1.left_bumper) {
-                    finalIntakeServo.setPower(0);
-                } else {
                     finalIntakeServo.setPower(1);
+                } else {
+                    finalIntakeServo.setPower(0);
                 }
                 LY = gamepad1.left_stick_y;
                 telemetry.addData("Left Stick Y", gamepad1.left_stick_y);
