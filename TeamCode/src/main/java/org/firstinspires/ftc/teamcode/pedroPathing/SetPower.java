@@ -52,7 +52,7 @@ public class SetPower extends LinearOpMode {
     private static final double F_Intake_Hold = 0.0;
 
     private final double[] TY_VALUES = {2.8, 5, 6.37, 10.0, 13.6, 17};
-    private final double[] RPM_VALUES = {3100, 2930, 2400, 2325, 2175, 2100};
+    private final double[] RPM_VALUES = {3050, 2880, 2350, 2275, 2125, 2050};
     private final double[] RPM_TOLERANCE_VALUES = {100, 125, 150, 150, 150, 150};
 
     private double getInterpolatedRPM(double ty) {
@@ -183,9 +183,8 @@ public class SetPower extends LinearOpMode {
                 shooterActive = false;
                 shoot = false;
                 reverseFlywheels = false;
-                double idleTicks = 2400 * TICKS_PER_REV / 60.0;
-                _6000RPMmotor.setPower(0);
-                _6000RPMmotorflywheelright.setPower(0);
+                _6000RPMmotor.setPower(0.1); // spin slightly backwards so you can reload and shoot faster next time
+                _6000RPMmotorflywheelright.setPower(-0.1); // spin slightly backwards so you can reload and shoot faster next time
             }
 
             // --- X press: reverse flywheels once ---
@@ -207,6 +206,8 @@ public class SetPower extends LinearOpMode {
 
             // --- manual intake (bumpers) ---
             if (!shoot) {
+                _6000RPMmotor.setPower(0.1); // spin slightly backwards so you can reload and shoot faster next time
+                _6000RPMmotorflywheelright.setPower(-0.1); // spin slightly backwards so you can reload and shoot faster next time
                 if (gamepad1.right_bumper) {
                     _1150RPMintake.setPower(IntakeInward);
                     finalIntakeServo.setPower(F_Intake_Backwards);
@@ -230,7 +231,7 @@ public class SetPower extends LinearOpMode {
                 _6000RPMmotorflywheelright.setPower(0.8);
 
                 // check if flywheels are within tolerance
-                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
+                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE && Math.abs(leftRPM) <= TARGET_SHOOT_RPM + 300) {
 
                     // flywheels are ready → activate final intake to shoot
                     activateFinalIntakeTemporary = true;
@@ -239,7 +240,14 @@ public class SetPower extends LinearOpMode {
 
                     // optionally, run main intake if needed in intake mode
                     _1150RPMintake.setPower(IntakeInward);
-                } else {
+                } else if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 300) {
+                    finalIntakeServo.setPower(F_Intake_Hold);
+                    FinalIntakeLeftDS.setPower(F_Intake_Hold);
+                    _1150RPMintake.setPower(0);
+                    activateFinalIntakeTemporary = false;
+                    shoot = false;
+                }
+                else {
                     // flywheels not at target → stop intake and final intake
                     finalIntakeServo.setPower(F_Intake_Hold);
                     FinalIntakeLeftDS.setPower(F_Intake_Hold);
