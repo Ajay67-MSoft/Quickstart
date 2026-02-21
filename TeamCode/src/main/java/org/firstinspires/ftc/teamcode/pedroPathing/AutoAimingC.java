@@ -16,8 +16,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
  * This class uses RobotConfig.java to manage constants, making it easier to share
  * parameters with other programs (like Autonomous) and tune values via CSV.
  * 
- * New Feature: Dynamic Spooling. The flywheels automatically adjust to the 
- * calculated distance-based RPM as soon as a target is detected by Limelight.
+ * Features:
+ * - Dynamic Spooling: Flywheels adjust to calculated distance-based RPM automatically.
+ * - Burst Fire: Dual-tolerance logic ensures two balls fire together consistently.
+ * - Shooting Boost: Adds extra RPM during firing to compensate for kinetic energy loss.
+ * - CSV Support: Loads tuning data from /sdcard/FIRST/shooter_lookup.csv.
  */
 @TeleOp(name = "AutoAimingC (Configurable) -------------------")
 public class AutoAimingC extends LinearOpMode {
@@ -99,7 +102,7 @@ public class AutoAimingC extends LinearOpMode {
         _6000RPMmotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, RobotConfig.SHOOTER_PIDF);
         _6000RPMmotorflywheelright.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, RobotConfig.SHOOTER_PIDF);
 
-        // Initialize shootTimer to a value larger than SHOOT_DURATION_MS
+        // Initialize shootTimer
         shootTimer.reset();
 
         waitForStart();
@@ -141,7 +144,7 @@ public class AutoAimingC extends LinearOpMode {
             double currentGoalRPM;
 
             if (result != null && result.isValid()) {
-                // If a target is seen, spool up to the interpolated RPM + offset, but never below MIN_ACTIVE_RPM
+                // Background spooling: interpolated RPM + small safety offset
                 currentGoalRPM = Math.max(interpolatedRPM + RobotConfig.SHOOTER_SPOOL_OFFSET_RPM, RobotConfig.SHOOTER_MIN_ACTIVE_RPM);
             } else {
                 // No target, stay at IDLE_RPM
@@ -192,21 +195,28 @@ public class AutoAimingC extends LinearOpMode {
                 }
             }
 
-            // --- Shooting Sequence ---
+            // --- Intelligent Shooting Sequence ---
             if (shoot) {
-                // When actively shooting, we target the precise interpolated speed
-                double shootTicks = interpolatedRPM * RobotConfig.SHOOTER_TICKS_PER_REV / 60.0;
+                // Use a BOOSTED RPM target during active shooting to keep double shots strong
+                double boostedRPM = interpolatedRPM + RobotConfig.SHOOTER_BURST_COMPENSATION_RPM;
+                double shootTicks = boostedRPM * RobotConfig.SHOOTER_TICKS_PER_REV / 60.0;
+                
                 _6000RPMmotor.setVelocity(-shootTicks);
                 _6000RPMmotorflywheelright.setVelocity(shootTicks);
 
-                // Initial firing check: must hit the tight tolerance first
-                boolean rpmAtTarget = Math.abs(leftRPM) >= (interpolatedRPM - RobotConfig.SHOOTER_RPM_TOLERANCE);
+                // Check if already firing to use wider stall tolerance
+                double currentTolerance = (finalIntakeServo.getPower() > 0.1) 
+                        ? RobotConfig.SHOOTER_STALL_TOLERANCE 
+                        : RobotConfig.SHOOTER_RPM_TOLERANCE;
+
+                // Firing check: use the interpolated target (the baseline) for the initial hit
+                boolean rpmAtTarget = Math.abs(leftRPM) >= (interpolatedRPM - currentTolerance);
 
                 if (rpmAtTarget) {
                     shootTimer.reset();
                 }
 
-                // Keep feeder running for the set duration (prevents stuttering)
+                // Burst fire: Keep feeder running if RPM is good OR within duration since last hit
                 if (shootTimer.milliseconds() < RobotConfig.SHOOT_DURATION_MS) {
                     finalIntakeServo.setPower(RobotConfig.FEEDER_SERVO_POWER_SHOOT);
                     FinalIntakeLeftDS.setPower(RobotConfig.FEEDER_SERVO_POWER_SHOOT);
@@ -217,14 +227,14 @@ public class AutoAimingC extends LinearOpMode {
                     _1150RPMintake.setPower(0);
                 }
             } else if (!reverseFlywheels) {
-                // Background Spooling: maintain the dynamic target based on target visibility
+                // Background spooling: maintain the dynamic target based on target visibility
                 _6000RPMmotor.setVelocity(-targetTicksPerSec);
                 _6000RPMmotorflywheelright.setVelocity(targetTicksPerSec);
             }
 
             // --- Telemetry ---
-            telemetry.addData("Spooling Status", (result != null && result.isValid()) ? "ACTIVE TARGET" : "IDLING");
-            telemetry.addData("Goal RPM", Math.round(currentGoalRPM));
+            telemetry.addData("Status", shoot ? "SHOOTING" : "READY");
+            telemetry.addData("Calculated RPM", Math.round(interpolatedRPM));
             telemetry.addData("Actual RPM", Math.round(leftRPM));
             telemetry.update();
         }

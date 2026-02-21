@@ -16,15 +16,20 @@ public class RobotConfig {
     // --- SHOOTER CONSTANTS ---
     public static double SHOOTER_TICKS_PER_REV = 28;
     public static double SHOOTER_RPM_TOLERANCE = 100;    // Initial tolerance to start firing
-    public static double SHOOTER_STALL_TOLERANCE = 350; // Leeway once shooting to prevent stalling
+    public static double SHOOTER_STALL_TOLERANCE = 450; // Wider tolerance once firing has begun (Burst Mode)
     public static double SHOOTER_IDLE_RPM = 2200;       // RPM when no target is seen
     public static double SHOOTER_MIN_ACTIVE_RPM = 2300; // Minimum RPM when a target IS seen
     public static double SHOOTER_SPOOL_OFFSET_RPM = 50; // Extra RPM added to interpolated target for safety
-    public static double SHOOT_DURATION_MS = 500;       // Minimum time to keep feeder running once triggered
+    
+    // Compensation to keep double shots strong. 
+    // Increase this if double shots are still too short.
+    public static double SHOOTER_BURST_COMPENSATION_RPM = 150; 
+
+    public static double SHOOT_DURATION_MS = 800;       // Keep feeder running for this long to clear both balls
     public static PIDFCoefficients SHOOTER_PIDF = new PIDFCoefficients(0.011, 0.0, 0.001, 13.5);
 
     // --- INTAKE & FEEDER CONSTANTS ---
-    public static double INTAKE_MOTOR_POWER_INWARD = -2.0; // Effective power
+    public static double INTAKE_MOTOR_POWER_INWARD = -2.0;
     public static double INTAKE_MOTOR_POWER_OUTWARD = 1.0;
     public static double FEEDER_SERVO_POWER_SHOOT = 1.0;
     public static double FEEDER_SERVO_POWER_REVERSE = -1.0;
@@ -69,9 +74,7 @@ public class RobotConfig {
             if (!lines.isEmpty()) {
                 RPM_TABLE = lines.toArray(new double[0][0]);
             }
-        } catch (Exception ignored) {
-            // Fallback to default RPM_TABLE if file reading fails
-        }
+        } catch (Exception ignored) {}
     }
 
     /**
