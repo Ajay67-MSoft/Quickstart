@@ -39,7 +39,7 @@ public class SetPower extends LinearOpMode {
     private ElapsedTime timer = new ElapsedTime();
 
     private static final double TICKS_PER_REV = 28;
-    private static final double RPM_TOLERANCE = 200;
+    private double RPM_TOLERANCE = 200;
 
     private double TARGET_SHOOT_RPM = 3100;
     private double targetTicksPerSec;
@@ -52,7 +52,8 @@ public class SetPower extends LinearOpMode {
     private static final double F_Intake_Hold = 0.0;
 
     private final double[] TY_VALUES = {2.8, 5, 6.37, 10.0, 13.6, 17};
-    private final double[] RPM_VALUES = {3100, 2930, 2600, 2525, 2375, 2300};
+    private final double[] RPM_VALUES = {3100, 2930, 2400, 2325, 2175, 2100};
+    private final double[] RPM_TOLERANCE_VALUES = {100, 125, 150, 175, 200, 225};
 
     private double getInterpolatedRPM(double ty) {
         if (ty <= TY_VALUES[0]) return RPM_VALUES[0];
@@ -68,6 +69,21 @@ public class SetPower extends LinearOpMode {
             }
         }
         return RPM_VALUES[0];
+    }
+    private double getInterpolatedToleranceRPM(double ty) {
+        if (ty <= TY_VALUES[0]) return RPM_TOLERANCE_VALUES[0];
+        if (ty >= TY_VALUES[TY_VALUES.length - 1]) return RPM_TOLERANCE_VALUES[RPM_TOLERANCE_VALUES.length - 1];
+        for (int i = 0; i < TY_VALUES.length - 1; i++) {
+            double tyLow = TY_VALUES[i];
+            double tyHigh = TY_VALUES[i + 1];
+            if (ty >= tyLow && ty <= tyHigh) {
+                double rpmLow = RPM_TOLERANCE_VALUES[i];
+                double rpmHigh = RPM_TOLERANCE_VALUES[i + 1];
+                double percent = (ty - tyLow) / (tyHigh - tyLow);
+                return rpmLow + percent * (rpmHigh - rpmLow);
+            }
+        }
+        return RPM_TOLERANCE_VALUES[0];
     }
 
     @Override
@@ -149,7 +165,7 @@ public class SetPower extends LinearOpMode {
             // --- target RPM ---
             TARGET_SHOOT_RPM = 3100;
             if (result != null && result.isValid()) TARGET_SHOOT_RPM = getInterpolatedRPM(result.getTy());
-            TARGET_SHOOT_RPM -= 200;
+            if (result != null && result.isValid()) RPM_TOLERANCE = getInterpolatedToleranceRPM(result.getTy());
             targetTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;
 
             double leftRPM = _6000RPMmotor.getVelocity() * 60.0 / TICKS_PER_REV;
