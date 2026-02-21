@@ -2,14 +2,15 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name = "OriginalCodeMoveBasedOnController6 (Blocks to Java)")
 public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends LinearOpMode {
 
-    private Servo FinalIntakeLeftDS;
-    private Servo finalIntakeServo;
+    private CRServo FinalIntakeLeftDS;
+    private CRServo finalIntakeServo;
     private DcMotor frontLeftWheelDS;
     private DcMotor backLeftWheelDS;
     private DcMotor frontRightWheelDS;
@@ -29,8 +30,8 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
         float frontRightPower;
         float backRightPower;
 
-        FinalIntakeLeftDS = hardwareMap.get(Servo.class, "FinalIntakeLeftDS");
-        finalIntakeServo = hardwareMap.get(Servo.class, "finalIntakeServo");
+        FinalIntakeLeftDS = hardwareMap.get(CRServo.class, "FinalIntakeLeftDS");
+        finalIntakeServo = hardwareMap.get(CRServo.class, "finalIntakeServo");
         frontLeftWheelDS = hardwareMap.get(DcMotor.class, "frontLeftWheelDS");
         backLeftWheelDS = hardwareMap.get(DcMotor.class, "backLeftWheelDS");
         frontRightWheelDS = hardwareMap.get(DcMotor.class, "frontRightWheelDS");
@@ -40,23 +41,21 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
         _6000RPMmotorflywheelright = hardwareMap.get(DcMotor.class, "6000 RPM motor flywheel right");
 
         // Put initialization blocks here.
-        FinalIntakeLeftDS.setPosition(20);
-        finalIntakeServo.setDirection(Servo.Direction.REVERSE);
-        finalIntakeServo.setPosition(20);
+        finalIntakeServo.setDirection(CRServo.Direction.REVERSE);
         waitForStart();
         if (opModeIsActive()) {
             // Put run blocks here.
             while (opModeIsActive()) {
                 // Put loop blocks here.
                 if (gamepad1.left_bumper) {
-                    FinalIntakeLeftDS.setPosition(0);
+                    FinalIntakeLeftDS.setPower(0);
                 } else {
-                    FinalIntakeLeftDS.setPosition(20);
+                    FinalIntakeLeftDS.setPower(1);
                 }
                 if (gamepad1.left_bumper) {
-                    finalIntakeServo.setPosition(0);
+                    finalIntakeServo.setPower(0);
                 } else {
-                    finalIntakeServo.setPosition(20);
+                    finalIntakeServo.setPower(1);
                 }
                 LY = gamepad1.left_stick_y;
                 telemetry.addData("Left Stick Y", gamepad1.left_stick_y);
