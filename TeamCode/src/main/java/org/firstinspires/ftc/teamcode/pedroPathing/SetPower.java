@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
-
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.limelightvision.LLResultTypes.FiducialResult; // allows us to track apriltag ID
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -103,8 +103,6 @@ public class SetPower extends LinearOpMode {
         _6000RPMmotor = hardwareMap.get(DcMotorEx.class, "6000 RPM motor");
         _6000RPMmotorflywheelright = hardwareMap.get(DcMotorEx.class, "6000 RPM motor flywheel right");
 
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-
         frontRightWheelDS.setDirection(DcMotor.Direction.REVERSE);
         backRightWheelDS.setDirection(DcMotor.Direction.REVERSE);
 
@@ -113,8 +111,10 @@ public class SetPower extends LinearOpMode {
         frontRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         backRightWheelDS.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        telemetry.setMsTransmissionInterval(11);
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.setPollRateHz(100);
         limelight.pipelineSwitch(0);
+        telemetry.setMsTransmissionInterval(11);
         limelight.start();
 
         FinalIntakeLeftDS.setPower(F_Intake_Hold);
@@ -142,17 +142,45 @@ public class SetPower extends LinearOpMode {
 
             // --- auto-aim ---
             if (gamepad1.b && result != null && result.isValid()) {
-                double tx = result.getTx();
-                double absTx = Math.abs(tx);
-                double alignedThreshold = 0.75;
-                double minRx = 0.06;
-                double maxRx = 0.2;
 
-                if (absTx <= alignedThreshold) rx = 0;
-                else {
-                    double scale = (absTx > 2) ? maxRx : Math.pow(absTx / 2.0, 1.5) * maxRx;
-                    if (scale < minRx) scale = minRx;
-                    rx = -Math.signum(tx) * scale;
+                FiducialResult bestTag = null;
+                double smallestAbsTx = Double.MAX_VALUE;
+
+                for (FiducialResult tag : result.getFiducialResults()) {
+
+                    if (tag.getFiducialId() == 20 || tag.getFiducialId() == 24) {
+
+                        double absTx = Math.abs(tag.getTargetXDegrees());
+
+                        if (absTx < smallestAbsTx) {
+                            smallestAbsTx = absTx;
+                            bestTag = tag;
+                        }
+                    }
+                }
+
+                if (bestTag != null) {
+                    double tx = bestTag.getTargetXDegrees();
+                    double absTx = Math.abs(tx);
+
+                    double alignedThreshold = 0.75;
+                    double minRx = 0.06;
+                    double maxRx = 0.2;
+
+                    if (absTx <= alignedThreshold) {
+                        rx = 0;
+                    } else {
+                        double scale =
+                                (absTx > 2)
+                                        ? maxRx
+                                        : Math.pow(absTx / 2.0, 1.5) * maxRx;
+
+                        if (scale < minRx) scale = minRx;
+
+                        rx = -Math.signum(tx) * scale;
+                    }
+                } else {
+                    rx = 0;
                 }
             }
 

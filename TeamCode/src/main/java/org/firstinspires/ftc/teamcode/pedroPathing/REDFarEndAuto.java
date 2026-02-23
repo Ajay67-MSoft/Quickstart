@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -29,27 +30,22 @@ public class REDFarEndAuto extends OpMode {
     private DcMotorEx leftFlywheel;
     private DcMotorEx rightFlywheel;
     private DcMotor intake1150;
-    private Servo finalIntakeLeft;
-    private Servo finalIntakeRight;
+    private CRServo finalIntakeLeft;
+    private CRServo finalIntakeRight;
 
     // limelight ty: 16.5 - closest possible (in front of purple line) (2400-2500 RPM)
-    private boolean shootLeft = false;
-    private boolean shootRight = false;
-    private int shootGap = 2000;
-    private int shootFirst = 500;
-    private int prepareSecond = 1500;
-    private int stopIntake = 3500;
-    private int shootSecond = 4500;
-    private double SHOOT_RPM = 3075; // 2650 (gap 150 from target_shoot_rpm) --> +425 --> 3075
-    private double TARGET_SHOOT_RPM = 3225; // 2500 --> 2925
+    private double SHOOT_RPM = 3000; // 2650 (gap 150 from target_shoot_rpm) --> +425 --> 3075
+    private double TARGET_SHOOT_RPM = 3000; // 2500 --> 2925
     private static final double TICKS_PER_REV = 28.0;
-    private final double shootTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;;
-    private static final double TARGET_RPM = 2000.0;
-    private static final double RPM_TOLERANCE = 100;
+    private final double shootTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;
+    private static final double RPM_TOLERANCE = 125;
     private int IntakeInward = -1;
     private int IntakeOutward = 1;
     private int IntakeNoPower = 0;
 
+    private static final double F_Intake_Shoot = 1.0;
+    private static final double F_Intake_Backwards = -1.0;
+    private static final double F_Intake_Hold = 0.0;
 
     private ElapsedTime timerLeft = new ElapsedTime();
     private ElapsedTime timerRight = new ElapsedTime();
@@ -81,11 +77,6 @@ public class REDFarEndAuto extends OpMode {
     private PathChain pathShoot1;
     private PathChain pathDriveToEnd;
 
-    /* ================= SERVO POSITIONS ================= */
-
-    private final double SERVO_FEED_POSITION = 0.0;
-    private final double SERVO_STOP_POSITION = 20;
-
     /* ================= INIT ================= */
 
     @Override
@@ -111,13 +102,10 @@ public class REDFarEndAuto extends OpMode {
 
         intake1150.setPower(0);
 
-        finalIntakeLeft  = hardwareMap.get(Servo.class, "FinalIntakeLeftDS");
-        finalIntakeRight = hardwareMap.get(Servo.class, "finalIntakeServo");
+        finalIntakeLeft  = hardwareMap.get(CRServo.class, "FinalIntakeLeftDS");
+        finalIntakeRight = hardwareMap.get(CRServo.class, "finalIntakeServo");
 
-        finalIntakeRight.setDirection(Servo.Direction.REVERSE);
-
-        finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
-        finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+        finalIntakeLeft.setDirection(CRServo.Direction.REVERSE);
 
         buildPaths();
 
@@ -227,11 +215,14 @@ public class REDFarEndAuto extends OpMode {
                 break;
             case FINISHED:
                 follower.followPath(pathDriveToEnd, true);
-                intake1150.setPower(0);
+
                 leftFlywheel.setPower(0);
                 rightFlywheel.setPower(0);
-                finalIntakeLeft.setPosition(SERVO_STOP_POSITION);
-                finalIntakeRight.setPosition(SERVO_STOP_POSITION);
+
+                intake1150.setPower(0);
+
+                finalIntakeLeft.setPower(0);
+                finalIntakeRight.setPower(0);
                 break;
         }
     }

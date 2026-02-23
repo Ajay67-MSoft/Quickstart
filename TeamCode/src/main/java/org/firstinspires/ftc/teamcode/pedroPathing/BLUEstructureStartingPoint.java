@@ -61,9 +61,6 @@ public class BLUEstructureStartingPoint extends OpMode {
 
     private boolean hasSetFinalIntakePowerToShoot = false;
 
-    private ElapsedTime timerLeft = new ElapsedTime();
-    private ElapsedTime timerRight = new ElapsedTime();
-
     /* ================= PEDRO ================= */
     private Follower follower;
     private Timer stateTimer;
@@ -511,7 +508,9 @@ public class BLUEstructureStartingPoint extends OpMode {
                 break;
 
             case STATE_FINISHED:
-                stopFlywheel();
+                leftFlywheel.setPower(0);
+                rightFlywheel.setPower(0);
+
                 intake1150.setPower(0);
                 finalIntakeLeft.setPower(F_Intake_Hold);
                 finalIntakeRight.setPower(F_Intake_Hold);
@@ -519,31 +518,25 @@ public class BLUEstructureStartingPoint extends OpMode {
         }
     }
 
-    /* ================= FLYWHEEL CONTROL ================= */
 
-    private void stopFlywheel() {
-        leftFlywheel.setPower(0);
-        rightFlywheel.setPower(0);
-    }
-
-    /* ================= RPM CALC ================= */
-    private double getFlywheelRPM(DcMotor motor) {
-
-        double currentTime = stateTimer.getElapsedTimeSeconds();
-        int currentPosition = motor.getCurrentPosition();
-
-        double deltaTime = currentTime - lastFlywheelTime;
-        int deltaTicks = currentPosition - lastFlywheelPosition;
-
-        if (deltaTime <= 0) return 0;
-
-        double rpm = ((deltaTicks / TICKS_PER_REV) / deltaTime) * 60.0;
-
-        lastFlywheelTime = currentTime;
-        lastFlywheelPosition = currentPosition;
-
-        return rpm;
-    }
+//    /* ================= RPM CALC ================= */
+//    private double getFlywheelRPM(DcMotor motor) {
+//
+//        double currentTime = stateTimer.getElapsedTimeSeconds();
+//        int currentPosition = motor.getCurrentPosition();
+//
+//        double deltaTime = currentTime - lastFlywheelTime;
+//        int deltaTicks = currentPosition - lastFlywheelPosition;
+//
+//        if (deltaTime <= 0) return 0;
+//
+//        double rpm = ((deltaTicks / TICKS_PER_REV) / deltaTime) * 60.0;
+//
+//        lastFlywheelTime = currentTime;
+//        lastFlywheelPosition = currentPosition;
+//
+//        return rpm;
+//    }
 
     /* ================= HELPERS ================= */
     private void transition(State next) {
