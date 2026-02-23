@@ -50,7 +50,7 @@ public class BLUEstructureStartingPoint extends OpMode {
     private static final double TICKS_PER_REV = 28.0;
     private final double shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0;;
 //    private static final double TARGET_RPM = 2000.0; commented out because not being used
-    private static final double RPM_TOLERANCE = 150;
+    private static final double RPM_TOLERANCE = 180;
     private int IntakeInward = -1;
     private int IntakeOutward = 1;
     private int IntakeNoPower = 0;
@@ -100,15 +100,15 @@ public class BLUEstructureStartingPoint extends OpMode {
 
     /* ================= POSES ================= */
     private final Pose poseStart = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143));
-    private final Pose poseShootPreload = new Pose(55, 100, Math.toRadians(145)); // increase x lower y to move farther from goal
+    private final Pose poseShootPreload = new Pose(55, 100, Math.toRadians(142)); // increase x lower y to move farther from goal
     private final Pose poseToCollect1 = new Pose(44.4, 84, Math.toRadians(180));
     private final Pose poseCollectsRow1 = new Pose(15, 80, Math.toRadians(180));
-    private final Pose poseShootRow1 = new Pose(55, 100, Math.toRadians(145)); // increase x lower y to move farther from goal
+    private final Pose poseShootRow1 = new Pose(55, 100, Math.toRadians(140)); // increase x lower y to move farther from goal
     private final Pose poseToCollect2 = new Pose(44.4, 60, Math.toRadians(180));
     private final Pose poseCollectsRow2 = new Pose(15, 56, Math.toRadians(180));
     private final Pose posePreparationPositionToMoveToShootPos = new Pose (44.4, 56, Math.toRadians(180));
-    private final Pose poseShootRow2 = new Pose(55, 100, Math.toRadians(145)); // increase x lower y to move farther from goal
-    private final Pose poseEnd = new Pose(24, 72, Math.toRadians(180));
+    private final Pose poseShootRow2 = new Pose(55, 100, Math.toRadians(142)); // increase x lower y to move farther from goal
+    private final Pose poseEnd = new Pose(24, 68, Math.toRadians(180));
 
     /* ================= PATHS ================= */
     private PathChain pathShootPreload;
@@ -127,7 +127,7 @@ public class BLUEstructureStartingPoint extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(poseStart);
-        follower.setMaxPower(0.70); // set power speed of the follower auto pedropathing
+        follower.setMaxPower(0.85); // set power speed of the follower auto pedropathing
 
         stateTimer = new Timer();
 
@@ -248,10 +248,11 @@ public class BLUEstructureStartingPoint extends OpMode {
         switch (state) {
 
             case statePathShootPreload:
+                follower.setMaxPower(0.85);
 
                 if (!pathStarted) { // starts all of the paths, but required to put inside all of
                     leftFlywheel.setPower(0.15);
-                    rightFlywheel.setPower(-0.15);// them
+                    rightFlywheel.setPower(-0.15);
                     follower.followPath(pathShootPreload, true); // ------------------ FOLLOWER
                     pathStarted = true;
                 }
@@ -263,10 +264,10 @@ public class BLUEstructureStartingPoint extends OpMode {
 
             case stateShootPreload:
 
-                leftFlywheel.setPower(-0.6);
-                rightFlywheel.setPower(0.6);
+                leftFlywheel.setPower(-0.5);
+                rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 300) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
@@ -300,6 +301,7 @@ public class BLUEstructureStartingPoint extends OpMode {
             case statePathToCollectRow1:
 
                 if (!pathStarted) {
+                    follower.setMaxPower(1);
                     follower.followPath(pathToCollectRow1, true); // ------------------ FOLLOWER
                     leftFlywheel.setPower(0.1);
                     rightFlywheel.setPower(-0.1);
@@ -318,6 +320,7 @@ public class BLUEstructureStartingPoint extends OpMode {
             case statePathThatCollectsRow1:
 
                 if (!pathStarted) {
+                    follower.setMaxPower(0.70);
                     follower.followPath(pathThatCollectsRow1, true); // ------------------ FOLLOWER
                     pathStarted = true;
                 }
@@ -335,6 +338,7 @@ public class BLUEstructureStartingPoint extends OpMode {
             case stateReturnFromRow1ToShoot:
 
                 if (!pathStarted) {
+                    follower.setMaxPower(0.8);
                     follower.followPath(pathReturnFromRow1ToShoot, true); // ------------------ FOLLOWER
                     pathStarted = true;
                 }
@@ -347,10 +351,10 @@ public class BLUEstructureStartingPoint extends OpMode {
 
             case stateShootRow1:
 
-                leftFlywheel.setPower(-0.6);
-                rightFlywheel.setPower(0.6);
+                leftFlywheel.setPower(-0.5);
+                rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 300) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
@@ -384,6 +388,7 @@ public class BLUEstructureStartingPoint extends OpMode {
 
             case statePathToCollectRow2:
                 if (!pathStarted) {
+                    follower.setMaxPower(1);
                     follower.followPath(pathToCollectRow2, true); // ------------------ FOLLOWER
                     leftFlywheel.setPower(0.1);
                     rightFlywheel.setPower(-0.1);
@@ -402,6 +407,7 @@ public class BLUEstructureStartingPoint extends OpMode {
 
             case statePathThatCollectsRow2:
                 if (!pathStarted) {
+                    follower.setMaxPower(0.70);
                     follower.followPath(pathThatCollectsRow2, true); // ------------------ FOLLOWER
                     leftFlywheel.setPower(0.1);
                     rightFlywheel.setPower(-0.1);
@@ -420,6 +426,7 @@ public class BLUEstructureStartingPoint extends OpMode {
 
             case statePathPreparationMovementToMoveToShoot2:
                 if (!pathStarted) {
+                    follower.setMaxPower(0.70);
                     follower.followPath(pathPreparationMovementToMoveToShoot2, true); // ------------------ FOLLOWER
                     leftFlywheel.setPower(0.1);
                     rightFlywheel.setPower(-0.1);
@@ -432,12 +439,13 @@ public class BLUEstructureStartingPoint extends OpMode {
                 }
 
                 if (!follower.isBusy()) {
-                    transition(State.stateShootRow2); // ------------------ TRANSITION STATES
+                    transition(State.stateReturnFromRow2ToShoot); // ------------------ TRANSITION STATES
                 }
                 break;
 
             case stateReturnFromRow2ToShoot:
                 if (!pathStarted) {
+                    follower.setMaxPower(1);
                     follower.followPath(pathReturnFromRow2ToShoot, true); // ------------------ FOLLOWER
                     leftFlywheel.setPower(0.1);
                     rightFlywheel.setPower(-0.1);
@@ -456,10 +464,10 @@ public class BLUEstructureStartingPoint extends OpMode {
 
             case stateShootRow2:
 
-                leftFlywheel.setPower(-0.6);
-                rightFlywheel.setPower(0.6);
+                leftFlywheel.setPower(-0.5);
+                rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 300) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
@@ -492,6 +500,7 @@ public class BLUEstructureStartingPoint extends OpMode {
 
             case stateDriveToEnd:
                 if (!pathStarted) {
+                    follower.setMaxPower(0.80);
                     follower.followPath(pathDriveToEnd, true); // ------------------ FOLLOWER
                     pathStarted = true;
                 }

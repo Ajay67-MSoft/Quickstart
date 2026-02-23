@@ -35,6 +35,7 @@ public class SetPower extends LinearOpMode {
     private boolean shoot = false;
     private boolean shooterActive = false;
     private boolean activateFinalIntakeTemporary = false;
+    private boolean reverseFlywheels = false;
     private ElapsedTime timer = new ElapsedTime();
 
     private static final double TICKS_PER_REV = 28;
@@ -178,6 +179,7 @@ public class SetPower extends LinearOpMode {
             }
 
             if (gamepad1.aWasPressed()) {
+                reverseFlywheels = false;
                 shooterActive = false;
                 shoot = false;
                 _6000RPMmotor.setPower(0.025); // spin slightly backwards so you can reload and shoot faster next time
@@ -186,6 +188,7 @@ public class SetPower extends LinearOpMode {
 
             // --- X press: reverse flywheels once ---
             if (gamepad1.xWasPressed()) {
+                reverseFlywheels = true;
                 shooterActive = false;
                 shoot = false;
                 _6000RPMmotor.setPower(0.45);          // left reversed
@@ -219,7 +222,6 @@ public class SetPower extends LinearOpMode {
                 }
             }
 
-            // --- shooting sequence ---
             // --- shooting sequence ---
             if (shoot) {
                 // spin flywheels toward target
