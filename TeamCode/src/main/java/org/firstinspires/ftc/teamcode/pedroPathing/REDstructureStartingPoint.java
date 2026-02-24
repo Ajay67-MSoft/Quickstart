@@ -83,24 +83,20 @@ public class REDstructureStartingPoint extends OpMode {
 
     private final Pose poseShootPreload =
             new Pose( 89, 100, Math.toRadians(38.5));
-
     private final Pose poseToCollect1 =
-            new Pose(99.6, 84, Math.toRadians(0));
-
+            new Pose(99.6, 88, Math.toRadians(0));
     private final Pose poseCollectsRow1 =
-            new Pose(130.0, 80, Math.toRadians(0));
-
+            new Pose(130.0, 84, Math.toRadians(0));
     private final Pose poseShootRow1 =
             new Pose( 89, 100, Math.toRadians(38.5));
     private final Pose poseToCollect2 =
-            new Pose(100, 60, Math.toRadians(0));
+            new Pose(100, 64, Math.toRadians(0));
     private final Pose poseCollectsRow2 =
-            new Pose(129, 56, Math.toRadians(0));
+            new Pose(129, 60, Math.toRadians(0));
     private final Pose posePreparationPositionToMoveToShootPos =
-            new Pose (100, 56, Math.toRadians(180));
+            new Pose (100, 60, Math.toRadians(0));
     private final Pose poseShootRow2 =
             new Pose( 89, 100, Math.toRadians(38.5)); // increase x lower y to move farther from goal
-
     private final Pose endPose =
             new Pose(99.6 + 16, 72, Math.toRadians(0));
 
@@ -137,7 +133,7 @@ public class REDstructureStartingPoint extends OpMode {
 
         finalIntakeLeft = hardwareMap.get(CRServo.class, "FinalIntakeLeftDS");
         finalIntakeRight = hardwareMap.get(CRServo.class, "finalIntakeServo");
-        finalIntakeRight.setDirection(CRServo.Direction.REVERSE);
+        finalIntakeLeft.setDirection(CRServo.Direction.REVERSE);
 
         leftFlywheel.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         rightFlywheel.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -168,27 +164,9 @@ public class REDstructureStartingPoint extends OpMode {
                         poseStart.getHeading(), poseShootPreload.getHeading())
                 .build();
 
-        pathToCollectRow1 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootPreload, poseToCollect1))
-                .setLinearHeadingInterpolation(
-                        poseShootPreload.getHeading(), poseToCollect1.getHeading())
-                .build();
-
-        pathThatCollectsRow1 = follower.pathBuilder()
-                .addPath(new BezierLine(poseToCollect1, poseCollectsRow1))
-                .setLinearHeadingInterpolation(
-                        poseToCollect1.getHeading(), poseCollectsRow1.getHeading())
-                .build();
-
-        pathReturnFromRow1ToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(poseCollectsRow1, poseShootRow1))
-                .setLinearHeadingInterpolation(
-                        poseCollectsRow1.getHeading(), poseShootRow1.getHeading())
-                .build();
-
         pathToCollectRow2 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootRow1, poseToCollect2))
-                .setLinearHeadingInterpolation(poseShootRow1.getHeading(), poseToCollect2.getHeading())
+                .addPath(new BezierLine(poseShootPreload, poseToCollect2))
+                .setLinearHeadingInterpolation(poseShootPreload.getHeading(), poseToCollect2.getHeading())
                 .build();
 
         pathThatCollectsRow2 = follower.pathBuilder()
@@ -204,6 +182,23 @@ public class REDstructureStartingPoint extends OpMode {
         pathReturnFromRow2ToShoot = follower.pathBuilder()
                 .addPath(new BezierLine(poseCollectsRow2, poseShootRow2))
                 .setLinearHeadingInterpolation(poseCollectsRow2.getHeading(), poseShootRow2.getHeading())
+                .build();
+
+        pathToCollectRow1 = follower.pathBuilder()
+                .addPath(new BezierLine(poseShootRow2, poseToCollect1))
+                .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseToCollect1.getHeading())
+                .build();
+
+        pathThatCollectsRow1 = follower.pathBuilder()
+                .addPath(new BezierLine(poseToCollect1, poseCollectsRow1))
+                .setLinearHeadingInterpolation(
+                        poseToCollect1.getHeading(), poseCollectsRow1.getHeading())
+                .build();
+
+        pathReturnFromRow1ToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(poseCollectsRow1, poseShootRow1))
+                .setLinearHeadingInterpolation(
+                        poseCollectsRow1.getHeading(), poseShootRow1.getHeading())
                 .build();
 
         pathDriveToEnd = follower.pathBuilder()

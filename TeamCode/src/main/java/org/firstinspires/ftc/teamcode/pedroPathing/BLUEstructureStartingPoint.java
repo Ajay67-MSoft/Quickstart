@@ -177,24 +177,9 @@ public class BLUEstructureStartingPoint extends OpMode {
                 .setLinearHeadingInterpolation(poseStart.getHeading(), poseShootPreload.getHeading())
                 .build();
 
-        pathToCollectRow1 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootPreload, poseToCollect1))
-                .setLinearHeadingInterpolation(poseShootPreload.getHeading(), poseToCollect1.getHeading())
-                .build();
-
-        pathThatCollectsRow1 = follower.pathBuilder()
-                .addPath(new BezierLine(poseToCollect1, poseCollectsRow1))
-                .setLinearHeadingInterpolation(poseToCollect1.getHeading(), poseCollectsRow1.getHeading())
-                .build();
-
-        pathReturnFromRow1ToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(poseCollectsRow1, poseShootRow1))
-                .setLinearHeadingInterpolation(poseCollectsRow1.getHeading(), poseShootRow1.getHeading())
-                .build();
-
         pathToCollectRow2 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootRow1, poseToCollect2))
-                .setLinearHeadingInterpolation(poseShootRow1.getHeading(), poseToCollect2.getHeading())
+                .addPath(new BezierLine(poseShootPreload, poseToCollect2))
+                .setLinearHeadingInterpolation(poseShootPreload.getHeading(), poseToCollect2.getHeading())
                 .build();
 
         pathThatCollectsRow2 = follower.pathBuilder()
@@ -210,6 +195,21 @@ public class BLUEstructureStartingPoint extends OpMode {
         pathReturnFromRow2ToShoot = follower.pathBuilder()
                 .addPath(new BezierLine(poseCollectsRow2, poseShootRow2))
                 .setLinearHeadingInterpolation(poseCollectsRow2.getHeading(), poseShootRow2.getHeading())
+                .build();
+
+        pathToCollectRow1 = follower.pathBuilder()
+                .addPath(new BezierLine(poseShootRow2, poseToCollect1))
+                .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseToCollect1.getHeading())
+                .build();
+
+        pathThatCollectsRow1 = follower.pathBuilder()
+                .addPath(new BezierLine(poseToCollect1, poseCollectsRow1))
+                .setLinearHeadingInterpolation(poseToCollect1.getHeading(), poseCollectsRow1.getHeading())
+                .build();
+
+        pathReturnFromRow1ToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(poseCollectsRow1, poseShootRow1))
+                .setLinearHeadingInterpolation(poseCollectsRow1.getHeading(), poseShootRow1.getHeading())
                 .build();
 
         pathDriveToEnd = follower.pathBuilder()
