@@ -40,7 +40,6 @@ public class SetPower extends LinearOpMode {
 
     private static final double TICKS_PER_REV = 28;
     private double RPM_TOLERANCE = 200;
-
     private double TARGET_SHOOT_RPM = 3100;
     private double targetTicksPerSec;
 
@@ -192,8 +191,49 @@ public class SetPower extends LinearOpMode {
 
             // --- target RPM ---
             TARGET_SHOOT_RPM = 3100;
-            if (result != null && result.isValid()) TARGET_SHOOT_RPM = getInterpolatedRPM(result.getTy());
-            if (result != null && result.isValid()) RPM_TOLERANCE = getInterpolatedToleranceRPM(result.getTy());
+            if (result != null && result.isValid()) {
+                FiducialResult bestTag = null;
+                double smallestAbsTx = Double.MAX_VALUE;
+
+                for (FiducialResult tag : result.getFiducialResults()) {
+
+                    if (tag.getFiducialId() == 20 || tag.getFiducialId() == 24) {
+
+                        double absTx = Math.abs(tag.getTargetXDegrees());
+
+                        if (absTx < smallestAbsTx) {
+                            smallestAbsTx = absTx;
+                            bestTag = tag;
+                        }
+                    }
+                }
+
+                if (bestTag != null) {
+                    TARGET_SHOOT_RPM = getInterpolatedRPM(bestTag.getTargetYDegrees());
+                }
+            }
+
+            if (result != null && result.isValid()) {
+                FiducialResult bestTag = null;
+                double smallestAbsTx = Double.MAX_VALUE;
+
+                for (FiducialResult tag : result.getFiducialResults()) {
+
+                    if (tag.getFiducialId() == 20 || tag.getFiducialId() == 24) {
+
+                        double absTx = Math.abs(tag.getTargetXDegrees());
+
+                        if (absTx < smallestAbsTx) {
+                            smallestAbsTx = absTx;
+                            bestTag = tag;
+                        }
+                    }
+                }
+
+                if (bestTag != null && result.isValid()) {
+                    RPM_TOLERANCE = getInterpolatedToleranceRPM(bestTag.getTargetYDegrees());
+                }
+            }
             targetTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;
 
             double leftRPM = _6000RPMmotor.getVelocity() * 60.0 / TICKS_PER_REV;
@@ -232,9 +272,11 @@ public class SetPower extends LinearOpMode {
             }
 
             // --- manual intake (bumpers) ---
-            if (!shoot) {
+            if (!shoot && reverseFlywheels == false) {
                 _6000RPMmotor.setPower(0.05); // spin slightly backwards so you can reload and shoot faster next time
                 _6000RPMmotorflywheelright.setPower(-0.05); // spin slightly backwards so you can reload and shoot faster next time
+            }
+            if (!shoot) {
                 if (gamepad1.right_bumper) {
                     _1150RPMintake.setPower(IntakeInward);
                     finalIntakeServo.setPower(F_Intake_Backwards);
@@ -251,7 +293,8 @@ public class SetPower extends LinearOpMode {
             }
 
             // --- shooting sequence ---
-            if (shoot) {
+            if (shoot && reverseFlywheels == false) {
+
                 // spin flywheels toward target
                 _6000RPMmotor.setPower(-0.8);
                 _6000RPMmotorflywheelright.setPower(0.8);

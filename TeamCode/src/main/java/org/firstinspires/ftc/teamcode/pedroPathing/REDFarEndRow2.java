@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
 GOALS WITH THIS COMMIT
@@ -19,7 +18,7 @@ GOALS WITH THIS COMMIT
  */
 
 @Autonomous
-public class REDFarEndAuto extends OpMode {
+public class REDFarEndRow2 extends OpMode {
 
     private boolean pathStarted = false;
 
@@ -226,8 +225,8 @@ public class REDFarEndAuto extends OpMode {
 
             case stateShootPreload:
 
-                leftFlywheel.setPower(-0.8);
-                rightFlywheel.setPower(0.8);
+                leftFlywheel.setPower(-0.7);
+                rightFlywheel.setPower(0.7);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
@@ -313,8 +312,8 @@ public class REDFarEndAuto extends OpMode {
 
             case stateShootRow2:
 
-                leftFlywheel.setPower(-0.8);
-                rightFlywheel.setPower(0.8);
+                leftFlywheel.setPower(-0.7);
+                rightFlywheel.setPower(0.7);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
@@ -407,8 +406,8 @@ public class REDFarEndAuto extends OpMode {
 
             case stateShootRow3:
 
-                leftFlywheel.setPower(-0.8);
-                rightFlywheel.setPower(0.8);
+                leftFlywheel.setPower(-0.7);
+                rightFlywheel.setPower(0.7);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);

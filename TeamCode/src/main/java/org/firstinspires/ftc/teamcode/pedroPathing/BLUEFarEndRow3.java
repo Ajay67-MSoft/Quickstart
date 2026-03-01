@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
 GOALS WITH THIS COMMIT
@@ -19,7 +18,7 @@ GOALS WITH THIS COMMIT
  */
 
 @Autonomous
-public class FarEndAutoBLUE extends OpMode {
+public class BLUEFarEndRow3 extends OpMode {
 
     private boolean pathStarted = false;
 
@@ -58,10 +57,6 @@ public class FarEndAutoBLUE extends OpMode {
     public enum State {
         statePathShootPreload,
         stateShootPreload,
-        statePathToCollectRow2,
-        statePathThatCollectsRow2,
-        stateReturnFromRow2ToShoot,
-        stateShootRow2,
         statePathToCollectRow3,
         statePathThatCollectsRow3,
         stateReturnFromRow3ToShoot,
@@ -95,11 +90,11 @@ public class FarEndAutoBLUE extends OpMode {
     private final Pose poseShootPreload = new Pose(60, 15, Math.toRadians(114)); // increase x lower y to move farther from goal
     private final Pose poseToCollect2 = new Pose(44.4, 60, Math.toRadians(180));
     private final Pose poseCollectsRow2 = new Pose(15, 56, Math.toRadians(180));
-    private final Pose poseShootRow2 = new Pose(60, 15, Math.toRadians(114)); // increase x lower y to move farther from goal
+    private final Pose poseShootRow2 = new Pose(60, 15, Math.toRadians(117)); // increase x lower y to move farther from goal
     private final Pose poseToCollect3 = new Pose(43, 39, Math.toRadians(180));
     private final Pose poseCollectsRow3 = new Pose(15, 35, Math.toRadians(180));
-    private final Pose poseShootRow3 = new Pose(60, 15, Math.toRadians(114)); // increase x lower y to move farther from goal
-    private final Pose poseEnd = new Pose(38, 13, Math.toRadians(180));
+    private final Pose poseShootRow3 = new Pose(60, 15, Math.toRadians(117)); // increase x lower y to move farther from goal
+    private final Pose poseEnd = new Pose(38, 25, Math.toRadians(180));
 
     /* ================= PATHS ================= */
 
@@ -155,8 +150,8 @@ public class FarEndAutoBLUE extends OpMode {
                 .build();
 
         pathToCollectRow2 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootPreload, poseToCollect2))
-                .setLinearHeadingInterpolation(poseShootPreload.getHeading(), poseToCollect2.getHeading())
+                .addPath(new BezierLine(poseShootRow3, poseToCollect2))
+                .setLinearHeadingInterpolation(poseShootRow3.getHeading(), poseToCollect2.getHeading())
                 .build();
 
         pathThatCollectsRow2 = follower.pathBuilder()
@@ -170,8 +165,8 @@ public class FarEndAutoBLUE extends OpMode {
                 .build();
 
         pathToCollectRow3 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootRow2, poseToCollect3))
-                .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseToCollect3.getHeading())
+                .addPath(new BezierLine(poseShootPreload, poseToCollect3))
+                .setLinearHeadingInterpolation(poseShootPreload.getHeading(), poseToCollect3.getHeading())
                 .build();
 
         pathThatCollectsRow3 = follower.pathBuilder()
@@ -185,8 +180,8 @@ public class FarEndAutoBLUE extends OpMode {
                 .build();
 
         pathDriveToEnd = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootRow3, poseEnd))
-                .setLinearHeadingInterpolation(poseShootRow3.getHeading(), poseEnd.getHeading())
+                .addPath(new BezierLine(poseShootRow2, poseEnd))
+                .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseEnd.getHeading())
                 .build();
     }
 
@@ -225,104 +220,15 @@ public class FarEndAutoBLUE extends OpMode {
 
             case stateShootPreload:
 
-                leftFlywheel.setPower(-0.8);
-                rightFlywheel.setPower(0.8);
+                leftFlywheel.setPower(-0.7);
+                rightFlywheel.setPower(0.7);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 500) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
                     rightFlywheel.setPower(-0.025);
                     intake1150.setPower(0);
-                    transition(State.statePathToCollectRow2); // ------------------ TRANSITION STATES
-                }
-                else if (hasSetFinalIntakePowerToShoot) {
-                    // KEEP FEEDING, regardless of RPM dips
-                    finalIntakeRight.setPower(F_Intake_Shoot);
-                    finalIntakeLeft.setPower(F_Intake_Shoot);
-                    intake1150.setPower(IntakeInward);
-                }
-                else if (!hasSetFinalIntakePowerToShoot &&
-                        Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
-
-                    finalIntakeRight.setPower(F_Intake_Shoot);
-                    finalIntakeLeft.setPower(F_Intake_Shoot);
-                    intake1150.setPower(IntakeInward);
-                    hasSetFinalIntakePowerToShoot = true;
-                }
-                else {
-                    finalIntakeRight.setPower(F_Intake_Hold);
-                    finalIntakeLeft.setPower(F_Intake_Hold);
-                    intake1150.setPower(0);
-                }
-                // new shootLeft() and shootRight() function
-
-                break;
-
-            case statePathToCollectRow2:
-
-                if (!pathStarted) {
-                    follower.setMaxPower(1);
-                    follower.followPath(pathToCollectRow2, true); // ------------------ FOLLOWER
-                    leftFlywheel.setPower(0.1);
-                    rightFlywheel.setPower(-0.1);
-                    pathStarted = true;
-                }
-
-                intake1150.setPower(IntakeInward);
-                finalIntakeRight.setPower(F_Intake_Backwards);
-                finalIntakeLeft.setPower(F_Intake_Backwards);
-
-                if (!follower.isBusy()) {
-                    transition(State.statePathThatCollectsRow2); // ------------------ TRANSITION STATES
-                }
-                break;
-
-            case statePathThatCollectsRow2:
-
-                if (!pathStarted) {
-                    follower.setMaxPower(0.70);
-                    follower.followPath(pathThatCollectsRow2, true); // ------------------ FOLLOWER
-                    pathStarted = true;
-                }
-
-                intake1150.setPower(IntakeInward);
-                finalIntakeRight.setPower(F_Intake_Backwards);
-                finalIntakeLeft.setPower(F_Intake_Backwards);
-
-
-                if (!follower.isBusy()) {
-                    transition(State.stateReturnFromRow2ToShoot); // ------------------ TRANSITION STATES
-                }
-                break;
-
-            case stateReturnFromRow2ToShoot:
-
-                if (!pathStarted) {
-                    follower.setMaxPower(0.8);
-                    follower.followPath(pathReturnFromRow2ToShoot, true); // ------------------ FOLLOWER
-                    pathStarted = true;
-                }
-
-                if (!follower.isBusy()) {
-                    intake1150.setPower(0);
-                    transition(State.stateShootRow2); // ------------------ TRANSITION STATES
-                }
-                break;
-
-            case stateShootRow2:
-
-                leftFlywheel.setPower(-0.8);
-                rightFlywheel.setPower(0.8);
-
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
-                    finalIntakeRight.setPower(F_Intake_Hold);
-                    finalIntakeLeft.setPower(F_Intake_Hold);
-                    intake1150.setPower(0);
-
-                    leftFlywheel.setPower(0.1);
-                    rightFlywheel.setPower(-0.1);
-
                     transition(State.statePathToCollectRow3); // ------------------ TRANSITION STATES
                 }
                 else if (hasSetFinalIntakePowerToShoot) {
@@ -331,7 +237,6 @@ public class FarEndAutoBLUE extends OpMode {
                     finalIntakeLeft.setPower(F_Intake_Shoot);
                     intake1150.setPower(IntakeInward);
                 }
-                // new shootLeft() and shootRight() function
                 else if (!hasSetFinalIntakePowerToShoot &&
                         Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
 
@@ -345,6 +250,8 @@ public class FarEndAutoBLUE extends OpMode {
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
                 }
+                // new shootLeft() and shootRight() function
+
                 break;
 
             case statePathToCollectRow3:
@@ -406,10 +313,10 @@ public class FarEndAutoBLUE extends OpMode {
 
             case stateShootRow3:
 
-                leftFlywheel.setPower(-0.8);
-                rightFlywheel.setPower(0.8);
+                leftFlywheel.setPower(-0.7);
+                rightFlywheel.setPower(0.7);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 500) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
