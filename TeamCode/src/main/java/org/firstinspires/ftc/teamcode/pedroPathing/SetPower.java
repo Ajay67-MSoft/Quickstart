@@ -293,7 +293,8 @@ public class SetPower extends LinearOpMode {
             }
 
             // --- shooting sequence ---
-            if (shoot && reverseFlywheels == false) {
+            if (shoot) {
+                reverseFlywheels = false;
 
                 // spin flywheels toward target
                 _6000RPMmotor.setPower(-0.8);
