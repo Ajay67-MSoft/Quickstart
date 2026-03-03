@@ -1,11 +1,10 @@
-package org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE;
+package org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.FarEnd;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -20,7 +19,7 @@ GOALS WITH THIS COMMIT
  */
 
 
-public class BLUEFarEndRow2ToRow3 extends OpMode {
+public class REDFarEndRow3ToRow2 extends OpMode {
 
     private boolean pathStarted = false;
 
@@ -68,6 +67,7 @@ public class BLUEFarEndRow2ToRow3 extends OpMode {
         stateReturnFromRow3ToShoot,
         stateShootRow3,
         stateDriveToEnd,
+
         STATE_FINISHED
     }
 
@@ -75,32 +75,32 @@ public class BLUEFarEndRow2ToRow3 extends OpMode {
 
     /* ================= POSES ================= */
     /*
-    good poses
-    private final Pose poseStart = new Pose(56, 8.2, Math.toRadians(90));
-    private final Pose poseShootPreload = new Pose(60, 15, Math.toRadians(114)); // increase x lower y to move farther from goal
-    private final Pose poseShootRow2 = new Pose(60, 15, Math.toRadians(114)); // increase x lower y to move farther from goal
-    private final Pose poseShootRow3 = new Pose(60, 15, Math.toRadians(114)); // increase x lower y to move farther from goal
+    correct poses
+    private final Pose poseStart = new Pose(88, 8.2, Math.toRadians(90));
+    private final Pose poseShootPreload = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
+    private final Pose poseShootRow2 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
+    private final Pose poseShootRow3 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
 
     switch poses
 
-    private final Pose poseToCollect2 = new Pose(102, 61, Math.toRadians(180));
-
-    private final Pose poseCollectsRow2 = new Pose(128, 57, Math.toRadians(180));
-
-    private final Pose poseToCollect3 = new Pose(107, 38, Math.toRadians(180));
-    private final Pose poseCollectsRow3 = new Pose(132, 34, Math.toRadians(180));
-
-    private final Pose poseEnd = new Pose(107, 13, Math.toRadians(0));
-     */
-    private final Pose poseStart = new Pose(56, 8.2, Math.toRadians(90));
-    private final Pose poseShootPreload = new Pose(60, 15, Math.toRadians(114)); // increase x lower y to move farther from goal
     private final Pose poseToCollect2 = new Pose(44.4, 60, Math.toRadians(180));
+
     private final Pose poseCollectsRow2 = new Pose(15, 56, Math.toRadians(180));
-    private final Pose poseShootRow2 = new Pose(60, 15, Math.toRadians(117)); // increase x lower y to move farther from goal
+
     private final Pose poseToCollect3 = new Pose(43, 39, Math.toRadians(180));
     private final Pose poseCollectsRow3 = new Pose(15, 35, Math.toRadians(180));
-    private final Pose poseShootRow3 = new Pose(60, 15, Math.toRadians(117)); // increase x lower y to move farther from goal
-    private final Pose poseEnd = new Pose(38, 25, Math.toRadians(180));
+
+    private final Pose poseEnd = new Pose(38, 13, Math.toRadians(180));
+     */
+    private final Pose poseStart = new Pose(88, 8.2, Math.toRadians(90));
+    private final Pose poseShootPreload = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
+    private final Pose poseToCollect2 = new Pose(102, 61, Math.toRadians(0));
+    private final Pose poseCollectsRow2 = new Pose(128, 57, Math.toRadians(0));
+    private final Pose poseShootRow2 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
+    private final Pose poseToCollect3 = new Pose(107, 38, Math.toRadians(0));
+    private final Pose poseCollectsRow3 = new Pose(132, 34, Math.toRadians(0));
+    private final Pose poseShootRow3 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
+    private final Pose poseEnd = new Pose(107, 13, Math.toRadians(0));
 
     /* ================= PATHS ================= */
 
@@ -156,8 +156,8 @@ public class BLUEFarEndRow2ToRow3 extends OpMode {
                 .build();
 
         pathToCollectRow2 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootPreload, poseToCollect2))
-                .setLinearHeadingInterpolation(poseShootPreload.getHeading(), poseToCollect2.getHeading())
+                .addPath(new BezierLine(poseShootRow3, poseToCollect2))
+                .setLinearHeadingInterpolation(poseShootRow3.getHeading(), poseToCollect3.getHeading())
                 .build();
 
         pathThatCollectsRow2 = follower.pathBuilder()
@@ -171,8 +171,8 @@ public class BLUEFarEndRow2ToRow3 extends OpMode {
                 .build();
 
         pathToCollectRow3 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootRow2, poseToCollect3))
-                .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseToCollect3.getHeading())
+                .addPath(new BezierLine(poseShootPreload, poseToCollect3))
+                .setLinearHeadingInterpolation(poseShootPreload.getHeading(), poseToCollect3.getHeading())
                 .build();
 
         pathThatCollectsRow3 = follower.pathBuilder()
@@ -186,8 +186,8 @@ public class BLUEFarEndRow2ToRow3 extends OpMode {
                 .build();
 
         pathDriveToEnd = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootRow3, poseEnd))
-                .setLinearHeadingInterpolation(poseShootRow3.getHeading(), poseEnd.getHeading())
+                .addPath(new BezierLine(poseShootRow2, poseEnd))
+                .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseEnd.getHeading())
                 .build();
     }
 
@@ -229,13 +229,13 @@ public class BLUEFarEndRow2ToRow3 extends OpMode {
                 leftFlywheel.setPower(-0.7);
                 rightFlywheel.setPower(0.7);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 500) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
                     rightFlywheel.setPower(-0.025);
                     intake1150.setPower(0);
-                    transition(State.statePathToCollectRow2); // ------------------ TRANSITION STATES
+                    transition(State.statePathToCollectRow3); // ------------------ TRANSITION STATES
                 }
                 else if (hasSetFinalIntakePowerToShoot) {
                     // KEEP FEEDING, regardless of RPM dips
@@ -316,7 +316,7 @@ public class BLUEFarEndRow2ToRow3 extends OpMode {
                 leftFlywheel.setPower(-0.7);
                 rightFlywheel.setPower(0.7);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 500) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
@@ -324,7 +324,7 @@ public class BLUEFarEndRow2ToRow3 extends OpMode {
                     leftFlywheel.setPower(0.1);
                     rightFlywheel.setPower(-0.1);
 
-                    transition(State.statePathToCollectRow3); // ------------------ TRANSITION STATES
+                    transition(State.stateDriveToEnd); // ------------------ TRANSITION STATES
                 }
                 else if (hasSetFinalIntakePowerToShoot) {
                     // KEEP FEEDING, regardless of RPM dips
@@ -410,13 +410,13 @@ public class BLUEFarEndRow2ToRow3 extends OpMode {
                 leftFlywheel.setPower(-0.7);
                 rightFlywheel.setPower(0.7);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 500) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
                     rightFlywheel.setPower(-0.025);
                     intake1150.setPower(0);
-                    transition(State.stateDriveToEnd); // ------------------ TRANSITION STATES
+                    transition(State.statePathToCollectRow2); // ------------------ TRANSITION STATES
                 }
                 else if (hasSetFinalIntakePowerToShoot) {
                     // KEEP FEEDING, regardless of RPM dips

@@ -1,11 +1,10 @@
-package org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED;
+package org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.FarEnd;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -20,7 +19,7 @@ GOALS WITH THIS COMMIT
  */
 
 
-public class REDFarEndRow3ToRow2 extends OpMode {
+public class REDFarEndRow2 extends OpMode {
 
     private boolean pathStarted = false;
 
@@ -36,7 +35,7 @@ public class REDFarEndRow3ToRow2 extends OpMode {
 //    private double SHOOT_RPM = 3000; // 2650 (gap 150 from target_shoot_rpm) --> +425 --> 3075
     private double TARGET_SHOOT_RPM = 3000; // 2500 --> 2925
     private static final double TICKS_PER_REV = 28.0;
-    //    private final double shootTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;
+//    private final double shootTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;
     private static final double RPM_TOLERANCE = 125;
     private int IntakeInward = -1;
     private int IntakeOutward = 1;
@@ -157,8 +156,8 @@ public class REDFarEndRow3ToRow2 extends OpMode {
                 .build();
 
         pathToCollectRow2 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootRow3, poseToCollect2))
-                .setLinearHeadingInterpolation(poseShootRow3.getHeading(), poseToCollect3.getHeading())
+                .addPath(new BezierLine(poseShootPreload, poseToCollect2))
+                .setLinearHeadingInterpolation(poseShootPreload.getHeading(), poseToCollect2.getHeading())
                 .build();
 
         pathThatCollectsRow2 = follower.pathBuilder()
@@ -172,8 +171,8 @@ public class REDFarEndRow3ToRow2 extends OpMode {
                 .build();
 
         pathToCollectRow3 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootPreload, poseToCollect3))
-                .setLinearHeadingInterpolation(poseShootPreload.getHeading(), poseToCollect3.getHeading())
+                .addPath(new BezierLine(poseShootRow2, poseToCollect3))
+                .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseToCollect3.getHeading())
                 .build();
 
         pathThatCollectsRow3 = follower.pathBuilder()
@@ -187,8 +186,8 @@ public class REDFarEndRow3ToRow2 extends OpMode {
                 .build();
 
         pathDriveToEnd = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootRow2, poseEnd))
-                .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseEnd.getHeading())
+                .addPath(new BezierLine(poseShootRow3, poseEnd))
+                .setLinearHeadingInterpolation(poseShootRow3.getHeading(), poseEnd.getHeading())
                 .build();
     }
 
@@ -236,7 +235,7 @@ public class REDFarEndRow3ToRow2 extends OpMode {
                     leftFlywheel.setPower(0.025);
                     rightFlywheel.setPower(-0.025);
                     intake1150.setPower(0);
-                    transition(State.statePathToCollectRow3); // ------------------ TRANSITION STATES
+                    transition(State.statePathToCollectRow2); // ------------------ TRANSITION STATES
                 }
                 else if (hasSetFinalIntakePowerToShoot) {
                     // KEEP FEEDING, regardless of RPM dips
@@ -325,7 +324,7 @@ public class REDFarEndRow3ToRow2 extends OpMode {
                     leftFlywheel.setPower(0.1);
                     rightFlywheel.setPower(-0.1);
 
-                    transition(State.stateDriveToEnd); // ------------------ TRANSITION STATES
+                    transition(State.statePathToCollectRow3); // ------------------ TRANSITION STATES
                 }
                 else if (hasSetFinalIntakePowerToShoot) {
                     // KEEP FEEDING, regardless of RPM dips
@@ -417,7 +416,7 @@ public class REDFarEndRow3ToRow2 extends OpMode {
                     leftFlywheel.setPower(0.025);
                     rightFlywheel.setPower(-0.025);
                     intake1150.setPower(0);
-                    transition(State.statePathToCollectRow2); // ------------------ TRANSITION STATES
+                    transition(State.stateDriveToEnd); // ------------------ TRANSITION STATES
                 }
                 else if (hasSetFinalIntakePowerToShoot) {
                     // KEEP FEEDING, regardless of RPM dips
