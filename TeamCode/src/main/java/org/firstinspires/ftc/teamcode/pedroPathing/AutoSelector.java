@@ -2,20 +2,19 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.pedropathing.telemetry.SelectableOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.BLUEFarEndRow2ToRow3;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.BLUEFarEndRow3;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.BLUEFarEndRow3ToRow2;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.BLUEstructureRow1;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.BLUEstructureRow1ToRow2;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.BLUEstructureRow2;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.REDFarEndRow2;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.REDFarEndRow3;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.REDFarEndRow3ToRow2;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.REDstructureRow1;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.REDstructureRow1ToRow2;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.REDstructureRow2;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.FarEnd.BLUEFarEndRow2ToRow3;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.FarEnd.BLUEFarEndRow3;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.FarEnd.BLUEFarEndRow3ToRow2;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.Structure.BLUEstructureRow1;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.Structure.BLUEstructureRow1ToRow2;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.BLUE.Structure.BLUEstructureRow2;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.FarEnd.REDFarEndRow2;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.FarEnd.REDFarEndRow3;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.FarEnd.REDFarEndRow3ToRow2;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.Structure.REDstructureRow1;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.Structure.REDstructureRow1ToRow2;
+import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.Structure.REDstructureRow2;
 
 @Autonomous(name = "AUTO SELECTOR", group = "Auto")
 public class AutoSelector extends SelectableOpMode {
