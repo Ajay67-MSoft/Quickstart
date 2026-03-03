@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
@@ -7,42 +7,37 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.CRServo;
 
-@Autonomous
-public class REDstructureRow2 extends OpMode {
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+/*
+GOALS WITH THIS COMMIT
+1. create red side pos by doing (144 - current x) and (current y)
+2. create red side angle by doing (180 - current angle)
+ */
+
+
+public class REDFarEndRow2 extends OpMode {
 
     private boolean pathStarted = false;
 
     /* ================= HARDWARE ================= */
+
     private DcMotorEx leftFlywheel;
     private DcMotorEx rightFlywheel;
     private DcMotor intake1150;
-
     private CRServo finalIntakeLeft;
     private CRServo finalIntakeRight;
 
-
-
-    /* ================= SHOOTING CONSTANTS ================= */
-
     // limelight ty: 16.5 - closest possible (in front of purple line) (2400-2500 RPM)
-    private boolean shootLeft = false;
-    private boolean shootRight = false;
-    private int shootGap = 2000;
-    private int shootFirst = 500;
-    private int prepareSecond = 1500;
-    private int stopIntake = 3500;
-    private int shootSecond = 4500;
-    private double SHOOT_RPM = 2500;
-    private double TARGET_SHOOT_RPM = 2500;
+//    private double SHOOT_RPM = 3000; // 2650 (gap 150 from target_shoot_rpm) --> +425 --> 3075
+    private double TARGET_SHOOT_RPM = 3000; // 2500 --> 2925
     private static final double TICKS_PER_REV = 28.0;
-    private final double shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0;;
-    //    private static final double TARGET_RPM = 2000.0; commented out because not being used
-    private static final double RPM_TOLERANCE = 180;
+//    private final double shootTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;
+    private static final double RPM_TOLERANCE = 125;
     private int IntakeInward = -1;
     private int IntakeOutward = 1;
     private int IntakeNoPower = 0;
@@ -50,67 +45,77 @@ public class REDstructureRow2 extends OpMode {
     private static final double F_Intake_Shoot = 1.0;
     private static final double F_Intake_Backwards = -1.0;
     private static final double F_Intake_Hold = 0.0;
-
     private boolean hasSetFinalIntakePowerToShoot = false;
+//    private ElapsedTime timerLeft = new ElapsedTime();
+//    private ElapsedTime timerRight = new ElapsedTime();
 
     /* ================= PEDRO ================= */
+
     private Follower follower;
     private Timer stateTimer;
 
-
     /* ================= STATES ================= */
+
     public enum State {
         statePathShootPreload,
         stateShootPreload,
         statePathToCollectRow2,
         statePathThatCollectsRow2,
-        statePathPreparationMovementToMoveToShoot2,
         stateReturnFromRow2ToShoot,
         stateShootRow2,
-        statePathToCollectRow1,
-        statePathThatCollectsRow1,
-        stateReturnFromRow1ToShoot,
-        stateShootRow1,
+        statePathToCollectRow3,
+        statePathThatCollectsRow3,
+        stateReturnFromRow3ToShoot,
+        stateShootRow3,
         stateDriveToEnd,
+
         STATE_FINISHED
     }
 
     private State state;
 
-    /* ================= POSES (FIXED RED MIRROR) ================= */
-    private final Pose poseStart =
-            new Pose(119, 131, Math.toRadians(37));
-    private final Pose poseShootPreload =
-            new Pose( 89, 100, Math.toRadians(38.5));
-    private final Pose poseToCollect2 =
-            new Pose(100, 64, Math.toRadians(0));
-    private final Pose poseCollectsRow2 =
-            new Pose(129, 60, Math.toRadians(0));
-    private final Pose posePreparationPositionToMoveToShootPos =
-            new Pose (100, 60, Math.toRadians(0));
-    private final Pose poseShootRow2 =
-            new Pose( 89, 100, Math.toRadians(38.5)); // increase x lower y to move farther from goal
-    private final Pose poseToCollect1 =
-            new Pose(99.6, 88, Math.toRadians(0));
-    private final Pose poseCollectsRow1 =
-            new Pose(130.0, 84, Math.toRadians(0));
-    private final Pose poseShootRow1 =
-            new Pose( 89, 100, Math.toRadians(38.5));
-    private final Pose endPose =
-            new Pose(99.6 + 16, 72, Math.toRadians(0));
+    /* ================= POSES ================= */
+    /*
+    correct poses
+    private final Pose poseStart = new Pose(88, 8.2, Math.toRadians(90));
+    private final Pose poseShootPreload = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
+    private final Pose poseShootRow2 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
+    private final Pose poseShootRow3 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
+
+    switch poses
+
+    private final Pose poseToCollect2 = new Pose(44.4, 60, Math.toRadians(180));
+
+    private final Pose poseCollectsRow2 = new Pose(15, 56, Math.toRadians(180));
+
+    private final Pose poseToCollect3 = new Pose(43, 39, Math.toRadians(180));
+    private final Pose poseCollectsRow3 = new Pose(15, 35, Math.toRadians(180));
+
+    private final Pose poseEnd = new Pose(38, 13, Math.toRadians(180));
+     */
+    private final Pose poseStart = new Pose(88, 8.2, Math.toRadians(90));
+    private final Pose poseShootPreload = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
+    private final Pose poseToCollect2 = new Pose(102, 61, Math.toRadians(0));
+    private final Pose poseCollectsRow2 = new Pose(128, 57, Math.toRadians(0));
+    private final Pose poseShootRow2 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
+    private final Pose poseToCollect3 = new Pose(107, 38, Math.toRadians(0));
+    private final Pose poseCollectsRow3 = new Pose(132, 34, Math.toRadians(0));
+    private final Pose poseShootRow3 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
+    private final Pose poseEnd = new Pose(107, 13, Math.toRadians(0));
 
     /* ================= PATHS ================= */
+
     private PathChain pathShootPreload;
     private PathChain pathToCollectRow2;
     private PathChain pathThatCollectsRow2;
-    private PathChain pathPreparationMovementToMoveToShoot2;
     private PathChain pathReturnFromRow2ToShoot;
-    private PathChain pathToCollectRow1;
-    private PathChain pathThatCollectsRow1;
-    private PathChain pathReturnFromRow1ToShoot;
+    private PathChain pathToCollectRow3;
+    private PathChain pathThatCollectsRow3;
+    private PathChain pathReturnFromRow3ToShoot;
     private PathChain pathDriveToEnd;
 
     /* ================= INIT ================= */
+
     @Override
     public void init() {
 
@@ -120,9 +125,9 @@ public class REDstructureRow2 extends OpMode {
 
         stateTimer = new Timer();
 
-        leftFlywheel = hardwareMap.get(DcMotorEx.class, "6000 RPM motor");
+        leftFlywheel  = hardwareMap.get(DcMotorEx.class, "6000 RPM motor");
         rightFlywheel = hardwareMap.get(DcMotorEx.class, "6000 RPM motor flywheel right");
-        intake1150 = hardwareMap.get(DcMotor.class, "1150 RPM intake");
+        intake1150    = hardwareMap.get(DcMotor.class, "1150 RPM intake");
 
         intake1150.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -130,23 +135,12 @@ public class REDstructureRow2 extends OpMode {
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         intake1150.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        finalIntakeLeft = hardwareMap.get(CRServo.class, "FinalIntakeLeftDS");
+        intake1150.setPower(0);
+
+        finalIntakeLeft  = hardwareMap.get(CRServo.class, "FinalIntakeLeftDS");
         finalIntakeRight = hardwareMap.get(CRServo.class, "finalIntakeServo");
+
         finalIntakeLeft.setDirection(CRServo.Direction.REVERSE);
-
-        leftFlywheel.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        rightFlywheel.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-
-        leftFlywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        rightFlywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-
-        PIDFCoefficients shooterPIDF =
-                new PIDFCoefficients(0.011, 0.0, 0.001, 14.6);
-
-        leftFlywheel.setPIDFCoefficients(
-                DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
-        rightFlywheel.setPIDFCoefficients(
-                DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
 
         buildPaths();
 
@@ -159,8 +153,7 @@ public class REDstructureRow2 extends OpMode {
 
         pathShootPreload = follower.pathBuilder()
                 .addPath(new BezierLine(poseStart, poseShootPreload))
-                .setLinearHeadingInterpolation(
-                        poseStart.getHeading(), poseShootPreload.getHeading())
+                .setLinearHeadingInterpolation(poseStart.getHeading(), poseShootPreload.getHeading())
                 .build();
 
         pathToCollectRow2 = follower.pathBuilder()
@@ -173,56 +166,47 @@ public class REDstructureRow2 extends OpMode {
                 .setLinearHeadingInterpolation(poseToCollect2.getHeading(), poseCollectsRow2.getHeading())
                 .build();
 
-        pathPreparationMovementToMoveToShoot2 = follower.pathBuilder()
-                .addPath(new BezierLine(poseCollectsRow2, posePreparationPositionToMoveToShootPos))
-                .setLinearHeadingInterpolation(poseCollectsRow2.getHeading(), posePreparationPositionToMoveToShootPos.getHeading())
-                .build();
-
         pathReturnFromRow2ToShoot = follower.pathBuilder()
                 .addPath(new BezierLine(poseCollectsRow2, poseShootRow2))
                 .setLinearHeadingInterpolation(poseCollectsRow2.getHeading(), poseShootRow2.getHeading())
                 .build();
 
-        pathToCollectRow1 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootRow2, poseToCollect1))
-                .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseToCollect1.getHeading())
+        pathToCollectRow3 = follower.pathBuilder()
+                .addPath(new BezierLine(poseShootRow2, poseToCollect3))
+                .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseToCollect3.getHeading())
                 .build();
 
-        pathThatCollectsRow1 = follower.pathBuilder()
-                .addPath(new BezierLine(poseToCollect1, poseCollectsRow1))
-                .setLinearHeadingInterpolation(
-                        poseToCollect1.getHeading(), poseCollectsRow1.getHeading())
+        pathThatCollectsRow3 = follower.pathBuilder()
+                .addPath(new BezierLine(poseToCollect3, poseCollectsRow3))
+                .setLinearHeadingInterpolation(poseToCollect3.getHeading(), poseCollectsRow3.getHeading())
                 .build();
 
-        pathReturnFromRow1ToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(poseCollectsRow1, poseShootRow1))
-                .setLinearHeadingInterpolation(
-                        poseCollectsRow1.getHeading(), poseShootRow1.getHeading())
+        pathReturnFromRow3ToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(poseCollectsRow3, poseShootRow3))
+                .setLinearHeadingInterpolation(poseCollectsRow3.getHeading(), poseShootRow3.getHeading())
                 .build();
 
         pathDriveToEnd = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootRow1, endPose))
-                .setLinearHeadingInterpolation(
-                        poseShootRow1.getHeading(), endPose.getHeading())
+                .addPath(new BezierLine(poseShootRow3, poseEnd))
+                .setLinearHeadingInterpolation(poseShootRow3.getHeading(), poseEnd.getHeading())
                 .build();
     }
 
     /* ================= LOOP ================= */
+
     @Override
     public void loop() {
+//        telemetry.addLine("1 RED POOP IN THE BACK ;-; ;-; ;-; ;-; ;-;"); // ------------ VERY IMPORTANT VERSION NUMBER LINE -----------
         follower.update();
         updateStateMachine();
     }
 
     /* ================= STATE MACHINE ================= */
+
     private void updateStateMachine() {
 
         double leftRPM = leftFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
         double rightRPM = rightFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
-
-        telemetry.addData("Flywheel RPM Left", leftRPM);
-        telemetry.addData("Flywheel RPM Right", rightRPM);
-        telemetry.update();
 
         switch (state) {
 
@@ -243,10 +227,10 @@ public class REDstructureRow2 extends OpMode {
 
             case stateShootPreload:
 
-                leftFlywheel.setPower(-0.5);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(-0.7);
+                rightFlywheel.setPower(0.7);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 200) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
@@ -278,18 +262,18 @@ public class REDstructureRow2 extends OpMode {
                 break;
 
             case statePathToCollectRow2:
+
                 if (!pathStarted) {
                     follower.setMaxPower(1);
                     follower.followPath(pathToCollectRow2, true); // ------------------ FOLLOWER
                     leftFlywheel.setPower(0.1);
                     rightFlywheel.setPower(-0.1);
-
-                    intake1150.setPower(IntakeInward);
-                    finalIntakeRight.setPower(F_Intake_Backwards);
-                    finalIntakeLeft.setPower(F_Intake_Backwards);
-
                     pathStarted = true;
                 }
+
+                intake1150.setPower(IntakeInward);
+                finalIntakeRight.setPower(F_Intake_Backwards);
+                finalIntakeLeft.setPower(F_Intake_Backwards);
 
                 if (!follower.isBusy()) {
                     transition(State.statePathThatCollectsRow2); // ------------------ TRANSITION STATES
@@ -297,37 +281,17 @@ public class REDstructureRow2 extends OpMode {
                 break;
 
             case statePathThatCollectsRow2:
+
                 if (!pathStarted) {
                     follower.setMaxPower(0.70);
                     follower.followPath(pathThatCollectsRow2, true); // ------------------ FOLLOWER
-                    leftFlywheel.setPower(0.1);
-                    rightFlywheel.setPower(-0.1);
-
-                    intake1150.setPower(IntakeInward);
-                    finalIntakeRight.setPower(F_Intake_Backwards);
-                    finalIntakeLeft.setPower(F_Intake_Backwards);
-
                     pathStarted = true;
                 }
 
-                if (!follower.isBusy()) {
-                    transition(State.statePathPreparationMovementToMoveToShoot2); // ------------------ TRANSITION STATES
-                }
-                break;
+                intake1150.setPower(IntakeInward);
+                finalIntakeRight.setPower(F_Intake_Backwards);
+                finalIntakeLeft.setPower(F_Intake_Backwards);
 
-            case statePathPreparationMovementToMoveToShoot2:
-                if (!pathStarted) {
-                    follower.setMaxPower(0.70);
-                    follower.followPath(pathPreparationMovementToMoveToShoot2, true); // ------------------ FOLLOWER
-                    leftFlywheel.setPower(0.1);
-                    rightFlywheel.setPower(-0.1);
-
-                    intake1150.setPower(IntakeInward);
-                    finalIntakeRight.setPower(F_Intake_Backwards);
-                    finalIntakeLeft.setPower(F_Intake_Backwards);
-
-                    pathStarted = true;
-                }
 
                 if (!follower.isBusy()) {
                     transition(State.stateReturnFromRow2ToShoot); // ------------------ TRANSITION STATES
@@ -335,36 +299,33 @@ public class REDstructureRow2 extends OpMode {
                 break;
 
             case stateReturnFromRow2ToShoot:
+
                 if (!pathStarted) {
-                    follower.setMaxPower(1);
+                    follower.setMaxPower(0.8);
                     follower.followPath(pathReturnFromRow2ToShoot, true); // ------------------ FOLLOWER
-                    leftFlywheel.setPower(0.1);
-                    rightFlywheel.setPower(-0.1);
-
-                    intake1150.setPower(IntakeInward);
-                    finalIntakeRight.setPower(F_Intake_Backwards);
-                    finalIntakeLeft.setPower(F_Intake_Backwards);
-
                     pathStarted = true;
                 }
 
                 if (!follower.isBusy()) {
+                    intake1150.setPower(0);
                     transition(State.stateShootRow2); // ------------------ TRANSITION STATES
                 }
                 break;
 
             case stateShootRow2:
 
-                leftFlywheel.setPower(-0.5);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(-0.7);
+                rightFlywheel.setPower(0.7);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
-                    leftFlywheel.setPower(0.025);
-                    rightFlywheel.setPower(-0.025);
                     intake1150.setPower(0);
-                    transition(State.statePathToCollectRow1); // ------------------ TRANSITION STATES
+
+                    leftFlywheel.setPower(0.1);
+                    rightFlywheel.setPower(-0.1);
+
+                    transition(State.statePathToCollectRow3); // ------------------ TRANSITION STATES
                 }
                 else if (hasSetFinalIntakePowerToShoot) {
                     // KEEP FEEDING, regardless of RPM dips
@@ -372,6 +333,7 @@ public class REDstructureRow2 extends OpMode {
                     finalIntakeLeft.setPower(F_Intake_Shoot);
                     intake1150.setPower(IntakeInward);
                 }
+                // new shootLeft() and shootRight() function
                 else if (!hasSetFinalIntakePowerToShoot &&
                         Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
 
@@ -385,74 +347,76 @@ public class REDstructureRow2 extends OpMode {
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
                 }
-                // new shootLeft() and shootRight() function
-
                 break;
 
-            case statePathToCollectRow1:
-
+            case statePathToCollectRow3:
                 if (!pathStarted) {
                     follower.setMaxPower(1);
-                    follower.followPath(pathToCollectRow1, true); // ------------------ FOLLOWER
+                    follower.followPath(pathToCollectRow3, true); // ------------------ FOLLOWER
                     leftFlywheel.setPower(0.1);
                     rightFlywheel.setPower(-0.1);
+
+                    intake1150.setPower(IntakeInward);
+                    finalIntakeRight.setPower(F_Intake_Backwards);
+                    finalIntakeLeft.setPower(F_Intake_Backwards);
+
                     pathStarted = true;
                 }
 
-                intake1150.setPower(IntakeInward);
-                finalIntakeRight.setPower(F_Intake_Backwards);
-                finalIntakeLeft.setPower(F_Intake_Backwards);
-
                 if (!follower.isBusy()) {
-                    transition(State.statePathThatCollectsRow1); // ------------------ TRANSITION STATES
+                    transition(State.statePathThatCollectsRow3); // ------------------ TRANSITION STATES
                 }
                 break;
 
-            case statePathThatCollectsRow1:
-
+            case statePathThatCollectsRow3:
                 if (!pathStarted) {
                     follower.setMaxPower(0.70);
-                    follower.followPath(pathThatCollectsRow1, true); // ------------------ FOLLOWER
+                    follower.followPath(pathThatCollectsRow3, true); // ------------------ FOLLOWER
+                    leftFlywheel.setPower(0.1);
+                    rightFlywheel.setPower(-0.1);
+
+                    intake1150.setPower(IntakeInward);
+                    finalIntakeRight.setPower(F_Intake_Backwards);
+                    finalIntakeLeft.setPower(F_Intake_Backwards);
+
                     pathStarted = true;
                 }
 
-                intake1150.setPower(IntakeInward);
-                finalIntakeRight.setPower(F_Intake_Backwards);
-                finalIntakeLeft.setPower(F_Intake_Backwards);
-
-
                 if (!follower.isBusy()) {
-                    transition(State.stateReturnFromRow1ToShoot); // ------------------ TRANSITION STATES
+                    transition(State.stateReturnFromRow3ToShoot); // ------------------ TRANSITION STATES
                 }
                 break;
 
-            case stateReturnFromRow1ToShoot:
-
+            case stateReturnFromRow3ToShoot:
                 if (!pathStarted) {
-                    follower.setMaxPower(0.8);
-                    follower.followPath(pathReturnFromRow1ToShoot, true); // ------------------ FOLLOWER
+                    follower.setMaxPower(1);
+                    follower.followPath(pathReturnFromRow3ToShoot, true); // ------------------ FOLLOWER
+                    leftFlywheel.setPower(0.1);
+                    rightFlywheel.setPower(-0.1);
+
+                    intake1150.setPower(IntakeInward);
+                    finalIntakeRight.setPower(F_Intake_Backwards);
+                    finalIntakeLeft.setPower(F_Intake_Backwards);
+
                     pathStarted = true;
                 }
 
                 if (!follower.isBusy()) {
-                    intake1150.setPower(0);
-                    transition(State.stateShootRow1); // ------------------ TRANSITION STATES
+                    transition(State.stateShootRow3); // ------------------ TRANSITION STATES
                 }
                 break;
 
-            case stateShootRow1:
+            case stateShootRow3:
 
-                leftFlywheel.setPower(-0.5);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(-0.7);
+                rightFlywheel.setPower(0.7);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
+                    leftFlywheel.setPower(0.025);
+                    rightFlywheel.setPower(-0.025);
                     intake1150.setPower(0);
-
-                    leftFlywheel.setPower(0.1);
-                    rightFlywheel.setPower(-0.1);
-
                     transition(State.stateDriveToEnd); // ------------------ TRANSITION STATES
                 }
                 else if (hasSetFinalIntakePowerToShoot) {
@@ -461,7 +425,6 @@ public class REDstructureRow2 extends OpMode {
                     finalIntakeLeft.setPower(F_Intake_Shoot);
                     intake1150.setPower(IntakeInward);
                 }
-                // new shootLeft() and shootRight() function
                 else if (!hasSetFinalIntakePowerToShoot &&
                         Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
 
@@ -475,6 +438,8 @@ public class REDstructureRow2 extends OpMode {
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
                 }
+                // new shootLeft() and shootRight() function
+
                 break;
 
             case stateDriveToEnd:
@@ -490,6 +455,8 @@ public class REDstructureRow2 extends OpMode {
                 break;
 
             case STATE_FINISHED:
+                leftFlywheel.setPower(0);
+                rightFlywheel.setPower(0);
 
                 intake1150.setPower(0);
                 finalIntakeLeft.setPower(F_Intake_Hold);
@@ -499,6 +466,7 @@ public class REDstructureRow2 extends OpMode {
     }
 
     /* ================= HELPERS ================= */
+
     private void transition(State next) {
         pathStarted = false;
         hasSetFinalIntakePowerToShoot = false;

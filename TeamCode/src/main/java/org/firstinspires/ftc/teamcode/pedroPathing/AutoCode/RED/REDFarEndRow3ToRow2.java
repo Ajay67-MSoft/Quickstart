@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
@@ -11,13 +11,15 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.CRServo;
 
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
 /*
 GOALS WITH THIS COMMIT
 1. create red side pos by doing (144 - current x) and (current y)
 2. create red side angle by doing (180 - current angle)
  */
 
-@Autonomous
+
 public class REDFarEndRow3ToRow2 extends OpMode {
 
     private boolean pathStarted = false;
