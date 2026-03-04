@@ -210,7 +210,7 @@ public class REDstructureRow1 extends OpMode {
                 leftFlywheel.setPower(-0.5);
                 rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 200) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 190) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
@@ -297,7 +297,7 @@ public class REDstructureRow1 extends OpMode {
                 leftFlywheel.setPower(-0.5);
                 rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 190) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
