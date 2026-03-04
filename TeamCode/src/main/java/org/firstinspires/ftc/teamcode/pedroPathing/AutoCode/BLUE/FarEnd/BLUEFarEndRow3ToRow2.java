@@ -92,14 +92,14 @@ public class BLUEFarEndRow3ToRow2 extends OpMode {
     private final Pose poseEnd = new Pose(107, 13, Math.toRadians(0));
      */
     private final Pose poseStart = new Pose(56, 8.2, Math.toRadians(90));
-    private final Pose poseShootPreload = new Pose(56, 15, Math.toRadians(116)); // increase x lower y to move farther from goal
+    private final Pose poseShootPreload = new Pose(56, 15, Math.toRadians(114.75)); // increase x lower y to move farther from goal
     private final Pose poseToCollect3 = new Pose(43, 33, Math.toRadians(180));
     private final Pose poseCollectsRow3 = new Pose(11, 28, Math.toRadians(180));
     private final Pose poseShootRow3 = new Pose(56, 15, Math.toRadians(108)); // increase x lower y to move farther from goal
     private final Pose poseToCollect2 = new Pose(44.4, 57, Math.toRadians(180));
     private final Pose poseCollectsRow2 = new Pose(11, 52.5, Math.toRadians(180));
     private final Pose poseShootRow2 = new Pose(56, 15, Math.toRadians(108.1)); // increase x lower y to move farther from goal
-    private final Pose poseEnd = new Pose(38, 25, Math.toRadians(180));
+    private final Pose poseEnd = new Pose(42, 25, Math.toRadians(180));
 
     /* ================= PATHS ================= */
 

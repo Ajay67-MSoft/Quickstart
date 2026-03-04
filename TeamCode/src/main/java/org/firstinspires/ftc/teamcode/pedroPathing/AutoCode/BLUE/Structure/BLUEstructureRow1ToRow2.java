@@ -264,7 +264,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                 leftFlywheel.setPower(-0.5);
                 rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 190) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 180) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
@@ -351,7 +351,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                 leftFlywheel.setPower(-0.5);
                 rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 190) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 180) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
@@ -464,7 +464,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                 leftFlywheel.setPower(-0.5);
                 rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 190) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 180) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);

@@ -86,7 +86,7 @@ public class REDstructureRow1ToRow2 extends OpMode {
     private final Pose poseToCollect2 =
             new Pose(100, 64, Math.toRadians(0));
     private final Pose poseCollectsRow2 =
-            new Pose(129, 60, Math.toRadians(0));
+            new Pose(135, 60, Math.toRadians(0));
     private final Pose posePreparationPositionToMoveToShootPos =
             new Pose (100, 60, Math.toRadians(0));
     private final Pose poseShootRow2 =
@@ -94,7 +94,7 @@ public class REDstructureRow1ToRow2 extends OpMode {
     private final Pose poseToCollect1 =
             new Pose(99.6, 88, Math.toRadians(0));
     private final Pose poseCollectsRow1 =
-            new Pose(130.0, 84, Math.toRadians(0));
+            new Pose(135.0, 84, Math.toRadians(0));
     private final Pose poseShootRow1 =
             new Pose( 89, 100, Math.toRadians(38.5));
     private final Pose endPose =
@@ -183,12 +183,12 @@ public class REDstructureRow1ToRow2 extends OpMode {
 
         pathToCollectRow2 = follower.pathBuilder()
                 .addPath(new BezierLine(poseShootRow1, poseToCollect2))
-                .setLinearHeadingInterpolation(poseShootRow1.getHeading(), poseToCollect1.getHeading())
+                .setLinearHeadingInterpolation(poseShootRow1.getHeading(), poseToCollect2.getHeading())
                 .build();
 
         pathThatCollectsRow2 = follower.pathBuilder()
-                .addPath(new BezierLine(poseToCollect1, poseCollectsRow1))
-                .setLinearHeadingInterpolation(poseToCollect1.getHeading(), poseCollectsRow1.getHeading())
+                .addPath(new BezierLine(poseToCollect2, poseCollectsRow2))
+                .setLinearHeadingInterpolation(poseToCollect2.getHeading(), poseCollectsRow2.getHeading())
                 .build();
 
         pathPreparationMovementToMoveToShoot2 = follower.pathBuilder()
@@ -247,7 +247,7 @@ public class REDstructureRow1ToRow2 extends OpMode {
                 leftFlywheel.setPower(-0.5);
                 rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 190) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 180) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
@@ -359,7 +359,7 @@ public class REDstructureRow1ToRow2 extends OpMode {
                 leftFlywheel.setPower(-0.5);
                 rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 190) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 180) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
@@ -446,7 +446,7 @@ public class REDstructureRow1ToRow2 extends OpMode {
                 leftFlywheel.setPower(-0.5);
                 rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 190) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 180) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
