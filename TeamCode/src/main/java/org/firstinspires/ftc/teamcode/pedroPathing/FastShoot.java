@@ -47,12 +47,12 @@ public class FastShoot extends LinearOpMode {
     private int IntakeOutward = 1;
 
     private static final double F_Intake_Shoot = 1.0;
-    private static final double F_Intake_Backwards = -1.0;
+    private static final double F_Intake_Backwards = -0.25;
     private static final double F_Intake_Hold = 0.0;
 
     private final double[] TY_VALUES = {2.8, 5, 6.37, 10.0, 13.6, 17};
     private final double[] RPM_VALUES = {3050, 2880, 2315, 2275, 2125, 2050}; // short shots = add more, long shots = subtract more
-    private final double[] RPM_TOLERANCE_VALUES = {150, 175, 200, 200, 210, 200}; // short shots = add more, long shots = subtract more
+    private final double[] RPM_TOLERANCE_VALUES = {100, 125, 150, 150, 160, 150}; // short shots = add more, long shots = subtract more
 
     private double getInterpolatedRPM(double ty) {
         if (ty <= TY_VALUES[0]) return RPM_VALUES[0];
@@ -246,15 +246,6 @@ public class FastShoot extends LinearOpMode {
                 timer.reset();
             }
 
-            if (gamepad1.aWasPressed()) {
-                reverseFlywheels = false;
-                shooterActive = false;
-                shoot = false;
-                _6000RPMmotor.setPower(0.025); // spin slightly backwards so you can reload and shoot faster next time
-                _6000RPMmotorflywheelright.setPower(-0.025); // spin slightly backwards so you can reload and shoot faster next time
-            }
-
-            // --- X press: reverse flywheels once ---
             if (gamepad1.xWasPressed()) {
                 reverseFlywheels = true;
                 shooterActive = false;
@@ -262,6 +253,20 @@ public class FastShoot extends LinearOpMode {
                 _6000RPMmotor.setPower(0.45);          // left reversed
                 _6000RPMmotorflywheelright.setPower(-0.45); // right reversed
             }
+
+            if (gamepad1.a) {
+                reverseFlywheels = false;
+                shooterActive = false;
+                shoot = false;
+                _6000RPMmotor.setPower(0.025); // spin slightly backwards so you can reload and shoot faster next time
+                _6000RPMmotorflywheelright.setPower(-0.025); // spin slightly backwards so you can reload and shoot faster next time
+            }
+            else if (!reverseFlywheels) {
+                _6000RPMmotor.setPower(-0.3);
+                _6000RPMmotorflywheelright.setPower(0.3);
+            }
+
+
 
             // --- DPad Down: Limelight telemetry ---
             if (gamepad1.dpad_down && result != null && result.isValid()) {
@@ -271,11 +276,6 @@ public class FastShoot extends LinearOpMode {
                 telemetry.addData("Botpose", botpose.toString());
             }
 
-            // --- manual intake (bumpers) ---
-            if (!shoot && reverseFlywheels == false) {
-                _6000RPMmotor.setPower(0.05); // spin slightly backwards so you can reload and shoot faster next time
-                _6000RPMmotorflywheelright.setPower(-0.05); // spin slightly backwards so you can reload and shoot faster next time
-            }
             if (!shoot) {
                 if (gamepad1.right_bumper) {
                     _1150RPMintake.setPower(IntakeInward);
@@ -283,8 +283,8 @@ public class FastShoot extends LinearOpMode {
                     FinalIntakeLeftDS.setPower(F_Intake_Backwards);
                 } else if (gamepad1.left_bumper) {
                     _1150RPMintake.setPower(IntakeOutward);
-                    finalIntakeServo.setPower(F_Intake_Hold);
-                    FinalIntakeLeftDS.setPower(F_Intake_Hold);
+                    finalIntakeServo.setPower(F_Intake_Backwards);
+                    FinalIntakeLeftDS.setPower(F_Intake_Backwards);
                 } else {
                     _1150RPMintake.setPower(0);
                     finalIntakeServo.setPower(F_Intake_Hold);
@@ -296,12 +296,12 @@ public class FastShoot extends LinearOpMode {
             if (shoot) {
                 reverseFlywheels = false;
 
-                // spin flywheels toward target
-                _6000RPMmotor.setPower(-1);
-                _6000RPMmotorflywheelright.setPower(1);
-
                 // check if flywheels are within tolerance
-                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE && Math.abs(leftRPM) <= TARGET_SHOOT_RPM + 500) {
+                if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE && Math.abs(leftRPM) <= TARGET_SHOOT_RPM + 300) {
+
+                    // spin flywheels toward target
+                    _6000RPMmotor.setPower(-0.8);
+                    _6000RPMmotorflywheelright.setPower(0.8);
 
                     // flywheels are ready → activate final intake to shoot
                     activateFinalIntakeTemporary = true;
@@ -310,14 +310,17 @@ public class FastShoot extends LinearOpMode {
 
                     // optionally, run main intake if needed in intake mode
                     _1150RPMintake.setPower(IntakeInward);
-                } else if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 500) {
-                    finalIntakeServo.setPower(F_Intake_Hold);
-                    FinalIntakeLeftDS.setPower(F_Intake_Hold);
+                } else if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 300) {
+                    _6000RPMmotor.setPower(0.05);
+                    _6000RPMmotorflywheelright.setPower(-0.05);
                     _1150RPMintake.setPower(0);
                     activateFinalIntakeTemporary = false;
-                    shoot = false;
                 }
                 else {
+                    // spin flywheels toward target
+                    _6000RPMmotor.setPower(-1);
+                    _6000RPMmotorflywheelright.setPower(1);
+
                     // flywheels not at target → stop intake and final intake
                     finalIntakeServo.setPower(F_Intake_Hold);
                     FinalIntakeLeftDS.setPower(F_Intake_Hold);
