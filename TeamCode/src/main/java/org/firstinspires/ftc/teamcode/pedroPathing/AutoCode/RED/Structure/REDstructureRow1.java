@@ -110,9 +110,9 @@ public class REDstructureRow1 extends OpMode {
 
         intake1150.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        intake1150.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+//        rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+//        intake1150.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         finalIntakeLeft = hardwareMap.get(CRServo.class, "FinalIntakeLeftDS");
         finalIntakeRight = hardwareMap.get(CRServo.class, "finalIntakeServo");

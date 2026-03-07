@@ -127,9 +127,9 @@ public class REDstructureRow1ToRow2 extends OpMode {
 
         intake1150.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        intake1150.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+//        rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+//        intake1150.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         finalIntakeLeft = hardwareMap.get(CRServo.class, "FinalIntakeLeftDS");
         finalIntakeRight = hardwareMap.get(CRServo.class, "finalIntakeServo");
@@ -244,8 +244,8 @@ public class REDstructureRow1ToRow2 extends OpMode {
 
             case stateShootPreload:
 
-                leftFlywheel.setPower(-0.5);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(-0.73);
+                rightFlywheel.setPower(0.73);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
                     finalIntakeRight.setPower(F_Intake_Hold);
