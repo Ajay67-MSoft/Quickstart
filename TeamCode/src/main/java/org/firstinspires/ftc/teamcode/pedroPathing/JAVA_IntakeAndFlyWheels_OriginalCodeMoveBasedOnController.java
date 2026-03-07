@@ -47,49 +47,16 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
             // Put run blocks here.
             while (opModeIsActive()) {
                 // Put loop blocks here.
-                if (gamepad1.dpad_up) {
-                    frontLeftWheelDS.setPower(1); //front left
-                }
-                else {
-                    frontLeftWheelDS.setPower(0);
-                }
-
-                if (gamepad1.dpad_left) {
-                    backLeftWheelDS.setPower(1); // back left
-                }
-                else {
-                    backLeftWheelDS.setPower(0);
-                }
-
-                if (gamepad1.dpad_down) {
-                    frontRightWheelDS.setPower(1); // front right
-                }
-                else {
-                    frontRightWheelDS.setPower(0);
-                }
-
-
-                if (gamepad1.dpad_right) {
-                    backRightWheelDS.setPower(1); // back right
-                }
-                else {
-                    backRightWheelDS.setPower(0);
-                }
-
-
-                // original code
-
-
                 if (gamepad1.left_bumper) {
                     FinalIntakeLeftDS.setPower(-1);
-                    finalIntakeServo.setPower(1);
                 } else {
                     FinalIntakeLeftDS.setPower(0);
+                }
+                if (gamepad1.left_bumper) {
+                    finalIntakeServo.setPower(1);
+                } else {
                     finalIntakeServo.setPower(0);
                 }
-
-                /*
-
                 LY = gamepad1.left_stick_y;
                 telemetry.addData("Left Stick Y", gamepad1.left_stick_y);
                 telemetry.addData("Left Stick X", gamepad1.left_stick_y);
@@ -208,8 +175,6 @@ public class JAVA_IntakeAndFlyWheels_OriginalCodeMoveBasedOnController extends L
                     frontRightWheelDS.setPower(-frontRightPower);
                     backRightWheelDS.setPower(-backRightPower);
                 }
-
-                 */
                 if (gamepad1.x) {
                     _1150RPMintake.setPower(-1);
                 } else {

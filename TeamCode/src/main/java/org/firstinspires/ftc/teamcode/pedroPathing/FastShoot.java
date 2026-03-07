@@ -50,9 +50,9 @@ public class FastShoot extends LinearOpMode {
     private static final double F_Intake_Backwards = -0.25;
     private static final double F_Intake_Hold = 0.0;
 
-    private final double[] TY_VALUES = {2.8, 5, 6.37, 10.0, 13.6, 17}; // 6.37 is at the edge of the front shooting zone
-    private final double[] RPM_VALUES = {3050, 2880, 2510, 2325, 2175, 2100}; // short shots = add more, long shots = subtract more
-    private final double[] RPM_TOLERANCE_VALUES = {0, 0, 0, 0, 0, 0}; // {0, 25, 50, 50, 60, 50}
+    private final double[] TY_VALUES = {2.8, 5, 6.37, 10.0, 13.6, 17};
+    private final double[] RPM_VALUES = {3050, 2880, 2315, 2275, 2125, 2050}; // short shots = add more, long shots = subtract more
+    private final double[] RPM_TOLERANCE_VALUES = {100, 125, 150, 150, 160, 150}; // short shots = add more, long shots = subtract more
 
     private double getInterpolatedRPM(double ty) {
         if (ty <= TY_VALUES[0]) return RPM_VALUES[0];
@@ -135,7 +135,7 @@ public class FastShoot extends LinearOpMode {
             // --- driver input ---
             y = gamepad1.left_stick_y;
             x = -gamepad1.left_stick_x;
-            rx = -gamepad1.right_stick_x;
+            rx = -gamepad1.right_stick_x * 0.75;
 
             LLResult result = limelight.getLatestResult();
 
@@ -262,8 +262,8 @@ public class FastShoot extends LinearOpMode {
                 _6000RPMmotorflywheelright.setPower(-0.025); // spin slightly backwards so you can reload and shoot faster next time
             }
             else if (!reverseFlywheels) {
-                _6000RPMmotor.setPower(-0.45);
-                _6000RPMmotorflywheelright.setPower(0.45);
+                _6000RPMmotor.setPower(-0.3);
+                _6000RPMmotorflywheelright.setPower(0.3);
             }
 
 

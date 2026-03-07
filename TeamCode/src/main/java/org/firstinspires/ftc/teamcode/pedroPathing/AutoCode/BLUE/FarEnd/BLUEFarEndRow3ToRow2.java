@@ -92,7 +92,7 @@ public class BLUEFarEndRow3ToRow2 extends OpMode {
     private final Pose poseEnd = new Pose(107, 13, Math.toRadians(0));
      */
     private final Pose poseStart = new Pose(56, 8.2, Math.toRadians(90));
-    private final Pose poseShootPreload = new Pose(56, 15, Math.toRadians(115)); // increase x lower y to move farther from goal
+    private final Pose poseShootPreload = new Pose(56, 15, Math.toRadians(114.75)); // increase x lower y to move farther from goal
     private final Pose poseToCollect3 = new Pose(43, 33, Math.toRadians(180));
     private final Pose poseCollectsRow3 = new Pose(11, 28, Math.toRadians(180));
     private final Pose poseShootRow3 = new Pose(56, 15, Math.toRadians(108)); // increase x lower y to move farther from goal
@@ -234,8 +234,6 @@ public class BLUEFarEndRow3ToRow2 extends OpMode {
                     leftFlywheel.setPower(0.025);
                     rightFlywheel.setPower(-0.025);
                     intake1150.setPower(0);
-                    telemetry.addLine("Debug: Transition States");
-                    telemetry.update();
                     transition(State.statePathToCollectRow3); // ------------------ TRANSITION STATES
                 }
                 else if (hasSetFinalIntakePowerToShoot) {
@@ -262,9 +260,6 @@ public class BLUEFarEndRow3ToRow2 extends OpMode {
                 break;
 
             case statePathToCollectRow2:
-
-                telemetry.addLine("Debug: statePathToCollectRow2");
-                telemetry.update();
 
                 if (!pathStarted) {
                     follower.setMaxPower(1);

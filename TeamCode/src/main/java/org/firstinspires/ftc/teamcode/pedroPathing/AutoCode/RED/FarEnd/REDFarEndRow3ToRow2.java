@@ -33,10 +33,10 @@ public class REDFarEndRow3ToRow2 extends OpMode {
 
     // limelight ty: 16.5 - closest possible (in front of purple line) (2400-2500 RPM)
 //    private double SHOOT_RPM = 3000; // 2650 (gap 150 from target_shoot_rpm) --> +425 --> 3075
-    private double TARGET_SHOOT_RPM = 3190; // 2500 --> 2925
+    private double TARGET_SHOOT_RPM = 3000; // 2500 --> 2925
     private static final double TICKS_PER_REV = 28.0;
     //    private final double shootTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;
-    private static final double RPM_TOLERANCE = 0;
+    private static final double RPM_TOLERANCE = 125;
     private int IntakeInward = -1;
     private int IntakeOutward = 1;
     private int IntakeNoPower = 0;
@@ -93,13 +93,13 @@ public class REDFarEndRow3ToRow2 extends OpMode {
     private final Pose poseEnd = new Pose(38, 13, Math.toRadians(180));
      */
     private final Pose poseStart = new Pose(88, 8.2, Math.toRadians(90));
-    private final Pose poseShootPreload = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(67)); // increase x lower y to move farther from goal
+    private final Pose poseShootPreload = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
     private final Pose poseToCollect2 = new Pose(102, 61, Math.toRadians(0));
-    private final Pose poseCollectsRow2 = new Pose(133, 57, Math.toRadians(0));
-    private final Pose poseShootRow2 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(68)); // increase x lower y to move farther from goal
+    private final Pose poseCollectsRow2 = new Pose(128, 57, Math.toRadians(0));
+    private final Pose poseShootRow2 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
     private final Pose poseToCollect3 = new Pose(107, 38, Math.toRadians(0));
-    private final Pose poseCollectsRow3 = new Pose(140, 34, Math.toRadians(0));
-    private final Pose poseShootRow3 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(69)); // increase x lower y to move farther from goal
+    private final Pose poseCollectsRow3 = new Pose(132, 34, Math.toRadians(0));
+    private final Pose poseShootRow3 = new Pose(83.9802306425, 15.182866556836899, Math.toRadians(66)); // increase x lower y to move farther from goal
     private final Pose poseEnd = new Pose(107, 13, Math.toRadians(0));
 
     /* ================= PATHS ================= */
@@ -226,10 +226,10 @@ public class REDFarEndRow3ToRow2 extends OpMode {
 
             case stateShootPreload:
 
-                leftFlywheel.setPower(-0.73);
-                rightFlywheel.setPower(0.73);
+                leftFlywheel.setPower(-0.7);
+                rightFlywheel.setPower(0.7);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 400) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
@@ -316,7 +316,7 @@ public class REDFarEndRow3ToRow2 extends OpMode {
                 leftFlywheel.setPower(-0.7);
                 rightFlywheel.setPower(0.7);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
@@ -407,10 +407,10 @@ public class REDFarEndRow3ToRow2 extends OpMode {
 
             case stateShootRow3:
 
-                leftFlywheel.setPower(-0.73);
-                rightFlywheel.setPower(0.73);
+                leftFlywheel.setPower(-0.7);
+                rightFlywheel.setPower(0.7);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 400) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
