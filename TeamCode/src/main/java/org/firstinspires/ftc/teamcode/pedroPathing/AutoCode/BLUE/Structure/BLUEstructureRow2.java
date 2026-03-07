@@ -102,7 +102,7 @@ public class BLUEstructureRow2 extends OpMode {
     private final Pose poseCollectsRow1 = new Pose(15, 80, Math.toRadians(180));
     private final Pose poseShootRow1 = new Pose(55, 100, Math.toRadians(140)); // increase x lower y to move farther from goal
     private final Pose poseToCollect2 = new Pose(44.4, 60, Math.toRadians(180));
-    private final Pose poseCollectsRow2 = new Pose(15, 56, Math.toRadians(180));
+    private final Pose poseCollectsRow2 = new Pose(10, 56, Math.toRadians(180));
     private final Pose posePreparationPositionToMoveToShootPos = new Pose (44.4, 56, Math.toRadians(180));
     private final Pose poseShootRow2 = new Pose(55, 100, Math.toRadians(142)); // increase x lower y to move farther from goal
     private final Pose poseEnd = new Pose(24, 68, Math.toRadians(180));
@@ -264,7 +264,7 @@ public class BLUEstructureRow2 extends OpMode {
                 leftFlywheel.setPower(-0.5);
                 rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 180) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
@@ -351,7 +351,7 @@ public class BLUEstructureRow2 extends OpMode {
                 leftFlywheel.setPower(-0.5);
                 rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 180) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
@@ -464,7 +464,7 @@ public class BLUEstructureRow2 extends OpMode {
                 leftFlywheel.setPower(-0.5);
                 rightFlywheel.setPower(0.5);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 180) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
