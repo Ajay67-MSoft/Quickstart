@@ -231,7 +231,7 @@ public class FastShoot extends LinearOpMode {
                 }
 
                 if (bestTag != null && result.isValid()) {
-                    RPM_TOLERANCE = getInterpolatedToleranceRPM(bestTag.getTargetYDegrees());
+                    RPM_TOLERANCE = getInterpolatedToleranceRPM(bestTag.getTargetYDegrees()); 
                 }
             }
             targetTicksPerSec = TARGET_SHOOT_RPM * TICKS_PER_REV / 60.0;

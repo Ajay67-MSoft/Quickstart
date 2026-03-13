@@ -261,8 +261,8 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
 
             case stateShootPreload:
 
-                leftFlywheel.setPower(-0.5);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(-0.73);
+                rightFlywheel.setPower(0.73);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
                     finalIntakeRight.setPower(F_Intake_Hold);
@@ -348,8 +348,8 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
 
             case stateShootRow1:
 
-                leftFlywheel.setPower(-0.5);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(-0.73);
+                rightFlywheel.setPower(0.73);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
                     finalIntakeRight.setPower(F_Intake_Hold);
@@ -461,8 +461,8 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
 
             case stateShootRow2:
 
-                leftFlywheel.setPower(-0.5);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(-0.73);
+                rightFlywheel.setPower(0.73);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
                     finalIntakeRight.setPower(F_Intake_Hold);

@@ -54,9 +54,9 @@ public class AutoSelector extends SelectableOpMode {
 
             });
 
-//            s.folder("🧪 TESTING", test -> {
-//                test.add("Just Leave", LeaveOnlyAuto::new);
-//            });
+            s.folder("🧪 TESTING", test -> {
+                test.add("Just Leave RED", LeaveOnlyRed::new);
+            });
 
         });
     }

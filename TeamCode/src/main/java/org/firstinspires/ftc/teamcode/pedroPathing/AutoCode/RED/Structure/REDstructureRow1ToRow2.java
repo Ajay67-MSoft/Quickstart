@@ -84,9 +84,9 @@ public class REDstructureRow1ToRow2 extends OpMode {
     private final Pose poseShootPreload =
             new Pose( 89, 100, Math.toRadians(38.5));
     private final Pose poseToCollect2 =
-            new Pose(100, 64, Math.toRadians(0));
+            new Pose(96, 64, Math.toRadians(0));
     private final Pose poseCollectsRow2 =
-            new Pose(135, 60, Math.toRadians(0));
+            new Pose(126, 60, Math.toRadians(0));
     private final Pose posePreparationPositionToMoveToShootPos =
             new Pose (100, 60, Math.toRadians(0));
     private final Pose poseShootRow2 =
@@ -244,8 +244,8 @@ public class REDstructureRow1ToRow2 extends OpMode {
 
             case stateShootPreload:
 
-                leftFlywheel.setPower(-0.5);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(-0.73);
+                rightFlywheel.setPower(0.73);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
                     finalIntakeRight.setPower(F_Intake_Hold);
@@ -356,8 +356,8 @@ public class REDstructureRow1ToRow2 extends OpMode {
 
             case stateShootRow2:
 
-                leftFlywheel.setPower(-0.5);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(-0.73);
+                rightFlywheel.setPower(0.73);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
                     finalIntakeRight.setPower(F_Intake_Hold);
@@ -443,8 +443,8 @@ public class REDstructureRow1ToRow2 extends OpMode {
 
             case stateShootRow1:
 
-                leftFlywheel.setPower(-0.5);
-                rightFlywheel.setPower(0.5);
+                leftFlywheel.setPower(-0.73);
+                rightFlywheel.setPower(0.73);
 
                 if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
                     finalIntakeRight.setPower(F_Intake_Hold);

@@ -225,10 +225,10 @@ public class BLUEFarEndRow3ToRow2 extends OpMode {
 
             case stateShootPreload:
 
-                leftFlywheel.setPower(-0.73);
-                rightFlywheel.setPower(0.73);
+                leftFlywheel.setPower(-0.96);
+                rightFlywheel.setPower(0.96);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 400) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
@@ -317,10 +317,10 @@ public class BLUEFarEndRow3ToRow2 extends OpMode {
 
             case stateShootRow2:
 
-                leftFlywheel.setPower(-0.73);
-                rightFlywheel.setPower(0.73);
+                leftFlywheel.setPower(-0.96);
+                rightFlywheel.setPower(0.96);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 400) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
@@ -411,10 +411,10 @@ public class BLUEFarEndRow3ToRow2 extends OpMode {
 
             case stateShootRow3:
 
-                leftFlywheel.setPower(-0.73);
-                rightFlywheel.setPower(0.73);
+                leftFlywheel.setPower(-0.96);
+                rightFlywheel.setPower(0.96);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 400) {
+                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 225) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
