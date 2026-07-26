@@ -16,11 +16,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(10.44) // Weight in KG (10.44 lbs = 4.73 kg)
-            .forwardZeroPowerAcceleration(-30.596899568015857)
-            .lateralZeroPowerAcceleration(-51.04545201410181)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.05,0,0.022,0.004))
-            .headingPIDFCoefficients(new PIDFCoefficients(.65,0,0.05,0.01))
+            .mass(12.7006) // Weight in KG
+            .forwardZeroPowerAcceleration(-34.13794570590704)
+            .lateralZeroPowerAcceleration(-53.51600064761596) // 51.04545201410181 --> 53.51600064761596
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.25,0,0.025,0.029))
+            .headingPIDFCoefficients(new PIDFCoefficients(0.50,0,0.03,0.0335))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.04,0,.007,.06,.01))
             .centripetalScaling(-.01)
             ;
@@ -35,8 +35,8 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(66.53458386518824)
-            .yVelocity(55.39393051027314);
+            .xVelocity(81.62100916584644) // 66.53458386518824 --> 81.62100916584644
+            .yVelocity(65.80482350747415); // 55.39393051027314 --> 65.80482350747415
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(-7.5)
@@ -51,8 +51,8 @@ public class Constants {
     public static PathConstraints pathConstraints = new PathConstraints(
             0.9,
             100,
-            .85,
-            1);
+            1.3,
+            0.5);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
