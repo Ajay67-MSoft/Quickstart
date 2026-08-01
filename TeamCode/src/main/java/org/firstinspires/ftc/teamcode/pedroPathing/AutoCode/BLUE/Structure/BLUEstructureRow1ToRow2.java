@@ -48,7 +48,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     private double SHOOT_RPM = 2500;
     private double TARGET_SHOOT_RPM = 2500;
     private static final double TICKS_PER_REV = 28.0;
-    private final double shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0;;
+    private final double shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0;
     //    private static final double TARGET_RPM = 2000.0; commented out because not being used
     private static final double RPM_TOLERANCE = 180;
     private int IntakeInward = -1;
@@ -98,11 +98,11 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     /* ================= POSES ================= */
     private final Pose poseStart = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143));
     private final Pose poseShootPreload = new Pose(55, 100, Math.toRadians(142)); // increase x lower y to move farther from goal
-    private final Pose poseToCollect1 = new Pose(44.4, 84, Math.toRadians(180));
-    private final Pose poseCollectsRow1 = new Pose(15, 80, Math.toRadians(180));
+    private final Pose poseToCollect1 = new Pose(44.4, 85.5, Math.toRadians(180));
+    private final Pose poseCollectsRow1 = new Pose(15, 81.5, Math.toRadians(180));
     private final Pose poseShootRow1 = new Pose(55, 100, Math.toRadians(140)); // increase x lower y to move farther from goal
-    private final Pose poseToCollect2 = new Pose(44.4, 60, Math.toRadians(180));
-    private final Pose poseCollectsRow2 = new Pose(10, 56, Math.toRadians(180));
+    private final Pose poseToCollect2 = new Pose(44.4, 62, Math.toRadians(180));
+    private final Pose poseCollectsRow2 = new Pose(10, 57, Math.toRadians(180));
     private final Pose posePreparationPositionToMoveToShootPos = new Pose (44.4, 56, Math.toRadians(180));
     private final Pose poseShootRow2 = new Pose(55, 100, Math.toRadians(142)); // increase x lower y to move farther from goal
     private final Pose poseEnd = new Pose(24, 68, Math.toRadians(180));
@@ -154,7 +154,8 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
         lastFlywheelTime = stateTimer.getElapsedTimeSeconds();
 
         PIDFCoefficients shooterPIDF =
-                new PIDFCoefficients(0.011, 0.0, 0.001, 14.6);
+                new PIDFCoefficients(0.24, 0.0, 0.001, 13.2);
+
 
         leftFlywheel.setPIDFCoefficients(
                 DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
@@ -177,6 +178,21 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                 .setLinearHeadingInterpolation(poseStart.getHeading(), poseShootPreload.getHeading())
                 .build();
 
+        pathToCollectRow1 = follower.pathBuilder()
+                .addPath(new BezierLine(poseShootPreload, poseToCollect1))
+                .setLinearHeadingInterpolation(poseShootPreload.getHeading(), poseToCollect1.getHeading())
+                .build();
+
+        pathThatCollectsRow1 = follower.pathBuilder()
+                .addPath(new BezierLine(poseToCollect1, poseCollectsRow1))
+                .setLinearHeadingInterpolation(poseToCollect1.getHeading(), poseCollectsRow1.getHeading())
+                .build();
+
+        pathReturnFromRow1ToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(poseCollectsRow1, poseShootRow1))
+                .setLinearHeadingInterpolation(poseCollectsRow1.getHeading(), poseShootRow1.getHeading())
+                .build();
+
         pathToCollectRow2 = follower.pathBuilder()
                 .addPath(new BezierLine(poseShootRow1, poseToCollect2))
                 .setLinearHeadingInterpolation(poseShootRow1.getHeading(), poseToCollect2.getHeading())
@@ -193,29 +209,32 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                 .build();
 
         pathReturnFromRow2ToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(poseCollectsRow2, poseShootRow2))
-                .setLinearHeadingInterpolation(poseCollectsRow2.getHeading(), poseShootRow2.getHeading())
-                .build();
-
-        pathToCollectRow1 = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootPreload, poseToCollect1))
-                .setLinearHeadingInterpolation(poseShootPreload.getHeading(), poseToCollect1.getHeading())
-                .build();
-
-        pathThatCollectsRow1 = follower.pathBuilder()
-                .addPath(new BezierLine(poseToCollect1, poseCollectsRow1))
-                .setLinearHeadingInterpolation(poseToCollect1.getHeading(), poseCollectsRow1.getHeading())
-                .build();
-
-        pathReturnFromRow1ToShoot = follower.pathBuilder()
-                .addPath(new BezierLine(poseCollectsRow1, poseShootRow1))
-                .setLinearHeadingInterpolation(poseCollectsRow1.getHeading(), poseShootRow1.getHeading())
+                .addPath(new BezierLine(posePreparationPositionToMoveToShootPos, poseShootRow2))
+                .setLinearHeadingInterpolation(posePreparationPositionToMoveToShootPos.getHeading(), poseShootRow2.getHeading())
                 .build();
 
         pathDriveToEnd = follower.pathBuilder()
-                .addPath(new BezierLine(poseShootRow1, poseEnd))
-                .setLinearHeadingInterpolation(poseShootRow1.getHeading(), poseEnd.getHeading())
+                .addPath(new BezierLine(poseShootRow2, poseEnd))
+                .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseEnd.getHeading())
                 .build();
+    }
+    private void spinUpFlywheelsHybrid(double currentLeftRPM) {
+        // Threshold calculation: 400 RPM below your shooting target
+        double thresholdRPM = TARGET_SHOOT_RPM - 300;
+
+        if (Math.abs(currentLeftRPM) < thresholdRPM) {
+            // === 1. BANG-BANG PHASE ===
+            // Speed is low: bypass calculation limits and force 100% full raw battery voltage
+            leftFlywheel.setPower(-1.0);
+            rightFlywheel.setPower(1.0);
+        } else {
+            // === 2. PRECISION PIDF PHASE ===
+            // Speed is within 400 RPM: switch seamlessly back to your tuned velocity coefficients
+            leftFlywheel.setMotorEnable();
+            rightFlywheel.setMotorEnable();
+            leftFlywheel.setVelocity(-1633);
+            rightFlywheel.setVelocity(1633);
+        }
     }
 
     /* ================= LOOP ================= */
@@ -229,6 +248,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     private void updateStateMachine() {
 
         double leftRPM = leftFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
+
 //        double rightRPM = rightFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
 //        commented out cuz its not being used
 
@@ -261,16 +281,20 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
 
             case stateShootPreload:
 
-                leftFlywheel.setPower(-0.73);
-                rightFlywheel.setPower(0.73);
+                spinUpFlywheelsHybrid(leftRPM);
+                //leftFlywheel.setPower(-0.60);
+                //rightFlywheel.setPower(0.60);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
+                if (stateTimer.getElapsedTimeSeconds() >= 5.0) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
+                    intake1150.setPower(0);
+
+                    // stop flywheels basically
                     leftFlywheel.setPower(0.025);
                     rightFlywheel.setPower(-0.025);
-                    intake1150.setPower(0);
-                    transition(State.statePathToCollectRow1); // ------------------ TRANSITION STATES
+
+                    transition(State.statePathToCollectRow1);
                 }
                 else if (hasSetFinalIntakePowerToShoot) {
                     // KEEP FEEDING, regardless of RPM dips
@@ -348,10 +372,11 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
 
             case stateShootRow1:
 
-                leftFlywheel.setPower(-0.73);
-                rightFlywheel.setPower(0.73);
+                spinUpFlywheelsHybrid(leftRPM);
+                //leftFlywheel.setPower(-0.60);
+                //rightFlywheel.setPower(0.60);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
+                if (stateTimer.getElapsedTimeSeconds() >= 5.0) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
@@ -461,10 +486,11 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
 
             case stateShootRow2:
 
-                leftFlywheel.setPower(-0.73);
-                rightFlywheel.setPower(0.73);
+                spinUpFlywheelsHybrid(leftRPM);
+                //leftFlywheel.setPower(-0.60);
+                //rightFlywheel.setPower(0.60);
 
-                if (Math.abs(leftRPM) > TARGET_SHOOT_RPM + 160) {
+                if (stateTimer.getElapsedTimeSeconds() >= 5.0) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     leftFlywheel.setPower(0.025);
@@ -508,9 +534,12 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                 break;
 
             case STATE_FINISHED:
+                // Let the path follower hold its position dead-on at the finish line
+                follower.update();
+
+                // Keep your standard actuator shut-down commands beneath
                 leftFlywheel.setPower(0);
                 rightFlywheel.setPower(0);
-
                 intake1150.setPower(0);
                 finalIntakeLeft.setPower(F_Intake_Hold);
                 finalIntakeRight.setPower(F_Intake_Hold);
