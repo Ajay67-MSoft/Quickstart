@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
-import com.pedropathing.follower.Follower;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResultTypes.FiducialResult; // allows us to track apriltag ID
@@ -11,30 +10,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 @TeleOp(name = "SFastShoot")
 public class FastShoot extends LinearOpMode {
-
-    // === PEDRO PATHING WAYPOINTS ===
-    private Follower follower;
-    private boolean isWaypointActive = false;
-
-    // Absolute Field Vector Constants from your Visualizer
-    private static final double startX = 24.0;
-    private static final double startY = 68.0;
-    private static final double startHeading = Math.toRadians(180.0);
-
-    private static final double gateX = 12.0426;
-    private static final double gateY = 59.4039;
-    private static final double gateHeading = Math.toRadians(142.0);
-
-    // dodge gate control point coordinate
-    private static final double gateControlX = 19.0213;
-    private static final double gateControlY = 56.3196;
-
-    // === END PEDRO PATHING WAYPOINTS ===
 
     private CRServo FinalIntakeLeftDS;
     private CRServo finalIntakeServo;
@@ -149,32 +128,15 @@ public class FastShoot extends LinearOpMode {
         _6000RPMmotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
         _6000RPMmotorflywheelright.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
 
-        // PEDRO PATHING MAGIC
-        follower = org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower(hardwareMap);
-        // init follower & feed start coordinates ---
-        follower.setPose(new com.pedropathing.geometry.Pose(startX, startY, startHeading));
-        follower.setMaxPower(0.85);
-
-
         waitForStart();
 
         while (opModeIsActive()) {
 
-            // --- Update Pedro Pathing Localizer ---
-            follower.update();
-
             // --- driver input ---
-
-            // Exponential drive version: kinda like mouse acceleration but for controller :)
-            y  = -Math.pow(gamepad1.left_stick_y, 3);
-            x  = Math.pow(gamepad1.left_stick_x, 3);
-            rx = Math.pow(gamepad1.right_stick_x, 3);
-
-            /*
             y = gamepad1.left_stick_y;
             x = -gamepad1.left_stick_x;
             rx = -gamepad1.right_stick_x;
-            */
+
             LLResult result = limelight.getLatestResult();
 
             // --- auto-aim ---
@@ -221,46 +183,11 @@ public class FastShoot extends LinearOpMode {
                 }
             }
 
-            // --- Trigger Dynamic Curved Waypoint Path Around the Gate ---
-            if (gamepad1.left_trigger > 0.5 && !isWaypointActive) {
-                isWaypointActive = true;
-
-                // Capture exactly where the robot is right now on the field
-                com.pedropathing.geometry.Pose liveRobotPose = follower.getPose();
-
-                // Create a smooth curve that wraps around your visualizer control point
-                com.pedropathing.paths.PathChain dodgeGatePath = follower.pathBuilder()
-                        .addPath(new com.pedropathing.geometry.BezierCurve(
-                                liveRobotPose,
-                                new com.pedropathing.geometry.Pose(gateControlX, gateControlY, liveRobotPose.getHeading()),
-                                new com.pedropathing.geometry.Pose(gateX, gateY, gateHeading)
-                        ))
-                        .setLinearHeadingInterpolation(liveRobotPose.getHeading(), gateHeading)
-                        .build();
-
-                // Fire the trajectory using your exact library options
-                follower.followPath(dodgeGatePath, true);
-            }
-
-            // Automatically turn off the waypoint mode once the robot arrives
-            if (isWaypointActive && !follower.isBusy()) {
-                isWaypointActive = false;
-            }
-
-
             // --- drive ---
-            if (isWaypointActive) {
-                // If the left trigger path is running, hand motor calculations over to Pedro Pathing
-                follower.update();
-            } else {
-                frontLeftWheelDS.setPower(y + x + rx);
-                backLeftWheelDS.setPower(y - x + rx);
-                frontRightWheelDS.setPower(y - x - rx);
-                backRightWheelDS.setPower(y + x - rx);
-            }
-            /*
-
-             */
+            frontLeftWheelDS.setPower(y + x + rx);
+            backLeftWheelDS.setPower(y - x + rx);
+            frontRightWheelDS.setPower(y - x - rx);
+            backRightWheelDS.setPower(y + x - rx);
 
             // --- target RPM ---
             TARGET_SHOOT_RPM = 3100;

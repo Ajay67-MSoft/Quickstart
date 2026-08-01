@@ -15,7 +15,6 @@ import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.FarEnd.REDFarEnd
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.Structure.REDstructureRow1;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.Structure.REDstructureRow1ToRow2;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.RED.Structure.REDstructureRow2;
-import org.firstinspires.ftc.teamcode.pedroPathing.AutoCode.TESTING.LeaveOnlyRed;
 
 @Autonomous(name = "AUTO SELECTOR", group = "Auto")
 public class AutoSelector extends SelectableOpMode {
