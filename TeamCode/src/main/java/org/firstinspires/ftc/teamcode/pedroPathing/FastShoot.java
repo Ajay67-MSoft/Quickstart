@@ -214,7 +214,7 @@ public class FastShoot extends LinearOpMode {
 
                         if (scale < minRx) scale = minRx;
 
-                        rx = -Math.signum(tx) * scale;
+                        rx = Math.signum(tx) * scale;
                     }
                 } else {
                     rx = 0;
