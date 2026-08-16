@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.control.PredictiveBrakingCoefficients; // Added for true Predictive Braking
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
@@ -17,22 +18,22 @@ public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(12.7006) // Weight in KG
 
-            // PHYSICS CHARACTERIZATION CONSTANTS
-            // These numbers tell the predictive physics engine exactly how hard your robot naturally brakes
-            .forwardZeroPowerAcceleration(-25.157)
-            .lateralZeroPowerAcceleration(-57.048)
-
-            // === DISABLING THE TRANSLATIONAL PIDF ===
-            // Setting this to zero disables the translational PID loops entirely,
-            // forcing Pedro Pathing to use pure predictive braking to calculate your stops
-            .translationalPIDFCoefficients(new PIDFCoefficients(0, 0, 0, 0))
+            // === TRUE PREDICTIVE BRAKING COEFFICIENTS ===
+            // Setting this automatically activates the real predictive braking algorithm.
+            // Values: (kP, kLinear, kQuadratic)
+            // Use PredictiveBrakingTuner to get kLinear and kQuadratic, then tune kP manually.
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(
+                    /* input kP here (try 0.1 as a starting baseline) */,
+                    /* input kLinear here from tuner */,
+                    /* input kQuadratic here from tuner */
+            ))
 
             // Keep your smooth heading loops to hold your angles straight while moving
             .headingPIDFCoefficients(new PIDFCoefficients(0.50, 0, 0.03, 0.0335))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.04, 0, .007, .06, .01))
 
-            // Turn off centripetal corrections since predictive braking accounts for momentum
-            .centripetalScaling(-0.01)
+            // Turn off centripetal corrections since true predictive braking accounts for momentum
+            .centripetalScaling(0.0)
             ;
 
     public static MecanumConstants driveConstants = new MecanumConstants()
