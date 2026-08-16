@@ -154,7 +154,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
         lastFlywheelTime = stateTimer.getElapsedTimeSeconds();
 
         PIDFCoefficients shooterPIDF =
-                new PIDFCoefficients(0.24, 0.0, 0.001, 13.2);
+                new PIDFCoefficients(0.24, 0.0, 0.002, 12);
 
 
         leftFlywheel.setPIDFCoefficients(
@@ -265,11 +265,10 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
         switch (state) {
 
             case statePathShootPreload:
-                follower.setMaxPower(0.85);
+                follower.setMaxPower(1);
 
                 if (!pathStarted) { // starts all of the paths, but required to put inside all of
-                    leftFlywheel.setPower(0.15);
-                    rightFlywheel.setPower(-0.15);
+                    spinUpFlywheelsHybrid(leftRPM);
                     follower.followPath(pathShootPreload, true); // ------------------ FOLLOWER
                     pathStarted = true;
                 }
@@ -281,11 +280,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
 
             case stateShootPreload:
 
-                spinUpFlywheelsHybrid(leftRPM);
-                //leftFlywheel.setPower(-0.60);
-                //rightFlywheel.setPower(0.60);
-
-                if (stateTimer.getElapsedTimeSeconds() >= 5.0) {
+                if (stateTimer.getElapsedTimeSeconds() >= 2.5) {
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
                     intake1150.setPower(0);
