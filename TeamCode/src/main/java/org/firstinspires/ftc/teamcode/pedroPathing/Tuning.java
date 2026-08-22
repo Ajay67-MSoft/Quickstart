@@ -1211,7 +1211,7 @@ class Line extends OpMode {
     public void loop() {
         follower.update();
         drawCurrentAndHistory();
-
+/*
         if (!follower.isBusy()) {
             if (forward) {
                 forward = false;
@@ -1221,7 +1221,7 @@ class Line extends OpMode {
                 follower.followPath(forwards);
             }
         }
-
+*/
         telemetryM.addData("Zero Line", 0);
 
         // Grabs the magnitude of how many inches away the robot is from the path
