@@ -26,7 +26,7 @@ public class Constants {
             // Values: (kP, kLinear, kQuadratic)
             // Use PredictiveBrakingTuner to get kLinear and kQuadratic, then tune kP manually.
             .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(
-                    0.17,               // kP
+                    0.065,               // kP
                     0.05568320676302328,          // kLinear
                     0.0017463909197535704         // kQuadratic
             ))
