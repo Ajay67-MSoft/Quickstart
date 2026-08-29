@@ -10,15 +10,9 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
-/*
- GOALS WITH THIS COMMIT
- 1. yes
- 2. no
- 3. maybe so
- */
 
 
 public class BLUEstructureRow1ToRow2 extends OpMode {
@@ -59,8 +53,9 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     private static final double F_Intake_Shoot = 1.0;
     private static final double F_Intake_Backwards = -1.0;
     private static final double F_Intake_Hold = 0.0;
-
-    private boolean hasSetFinalIntakePowerToShoot = false;
+    private boolean shouldBeShooting = true;
+    private ElapsedTime customTimer = new ElapsedTime();
+    private boolean resetCustomTimer = false;
 
     /* ================= PEDRO ================= */
     private Follower follower;
@@ -84,10 +79,10 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     private final Pose poseStart = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143));
     private final Pose poseShootPreload = new Pose(55, 100, Math.toRadians(142)); // increase x lower y to move farther from goal
     private final Pose poseToCollect1 = new Pose(44.4, 85.5, Math.toRadians(180));
-    private final Pose poseCollectsRow1 = new Pose(15, 81.5, Math.toRadians(180));
+    private final Pose poseCollectsRow1 = new Pose(25, 81.5, Math.toRadians(180)); // kept ramming into ramp so changed x from 15 --> 25
     private final Pose poseShootRow1 = new Pose(55, 100, Math.toRadians(140)); // increase x lower y to move farther from goal
     private final Pose poseToCollect2 = new Pose(44.4, 62, Math.toRadians(180));
-    private final Pose poseCollectsRow2 = new Pose(10, 57, Math.toRadians(180));
+    private final Pose poseCollectsRow2 = new Pose(20, 57, Math.toRadians(180));
     private final Pose posePreparationPositionToMoveToShootPos = new Pose(44.4, 56, Math.toRadians(180));
     private final Pose poseShootRow2 = new Pose(55, 100, Math.toRadians(142)); // increase x lower y to move farther from goal
     private final Pose poseEnd = new Pose(24, 68, Math.toRadians(180));
@@ -135,11 +130,8 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
         leftFlywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         rightFlywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        lastFlywheelPosition = leftFlywheel.getCurrentPosition();
-        lastFlywheelTime = stateTimer.getElapsedTimeSeconds();
-
         PIDFCoefficients shooterPIDF =
-                new PIDFCoefficients(0.24, 0.0, 0.002, 12);
+                new PIDFCoefficients(0.35, 0.0, 0.002, 14);
 
 
         leftFlywheel.setPIDFCoefficients(
@@ -239,16 +231,16 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
      */
     private void spinUpFlywheelsHybrid(double currentLeftRPM) {
         // Threshold calculation: 400 RPM below your shooting target
-        double thresholdRPM = TARGET_SHOOT_RPM - 300;
+//        double thresholdRPM = 2200;
 
-        if (Math.abs(currentLeftRPM) < thresholdRPM) {
-            // === 1. BANG-BANG PHASE ===
-            // Speed is low: bypass calculation limits and force 100% full raw battery voltage
+        if (Math.abs(currentLeftRPM) < 2200) {
+            // 1. BANG-BANG
+            // put max flywheel power lol
             leftFlywheel.setPower(-1.0);
             rightFlywheel.setPower(1.0);
         } else {
-            // === 2. PRECISION PIDF PHASE ===
-            // Speed is within 400 RPM: switch seamlessly back to your tuned velocity coefficients
+            // PIDF
+            // Speed is within 400 RPM: switch back to pidf
             leftFlywheel.setVelocity(-1167); // 1633
             rightFlywheel.setVelocity(1167); // 1633
         }
@@ -263,51 +255,56 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
 
     /* ================= STATE MACHINE ================= */
     private void updateStateMachine() {
+
+        // telemetry -=-=-=-=-=-=-=-=-
         double leftRPM = leftFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
         // double rightRPM = rightFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
-        telemetry.addData("Flywheel RPM Left:", "%.1f", leftRPM);
+        telemetry.addData("Current Flywheel RPM:", "%.1f", Math.abs(leftRPM));
         // telemetry.addData("Flywheel RPM Right:", "%.1f", rightRPM);
         telemetry.addData("Target RPM", TARGET_SHOOT_RPM);
         // telemetry.addData("timer: left", timerLeft.milliseconds());
         // telemetry.addData("timer right:", timerRight.milliseconds());
         telemetry.update();
-        // telemetry commented out cuz lets be honest - was it really doing anything
+        // telemetry -=-=-=-=-=-=-=-=-
+
+
         double currentSegment = follower.getCurrentPathNumber();
         switch (state) {
             case STATE_DRIVE_AND_SHOOT_PRELOAD:
+                if (shouldBeShooting) {
+                    spinUpFlywheelsHybrid(leftRPM);
+                }
+                else {
+                    leftFlywheel.setPower(0.025);
+                    rightFlywheel.setPower(-0.025);
+                }
+
                 if (!pathStarted) {
                     follower.setMaxPower(1.0);
-                    spinUpFlywheelsHybrid(leftRPM);
                     follower.followPath(scorePreloadChain, true);
                     pathStarted = true;
                 }
 
                 // Since arrived at the end of the preload path, we'll shoot the artifacts:
                 if (!follower.isBusy()) {
-                    if (!hasResetShootingTimer) {
-                        stateTimer.resetTimer();
-                        hasResetShootingTimer = true;
+                    if (!resetCustomTimer) {
+                        customTimer.reset();
+                        resetCustomTimer = true;
                     }
 
-                    if (stateTimer.getElapsedTimeSeconds() >= 10) {
+                    if (customTimer.milliseconds() >= 5000) {
                         finalIntakeRight.setPower(F_Intake_Hold);
                         finalIntakeLeft.setPower(F_Intake_Hold);
                         intake1150.setPower(0);
+                        // timer
+                        resetCustomTimer = false;
                         // stop flywheels basically
-                        leftFlywheel.setPower(0.025);
-                        rightFlywheel.setPower(-0.025);
+                        shouldBeShooting = false;
                         transition(State.STATE_INTAKE_AND_SCORE_ROW_1); // ------------------ TRANSITION STATES
-                    } else if (hasSetFinalIntakePowerToShoot) {
+                    } else if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
                         finalIntakeRight.setPower(F_Intake_Shoot);
                         finalIntakeLeft.setPower(F_Intake_Shoot);
                         intake1150.setPower(IntakeInward);
-                    } else if (!hasSetFinalIntakePowerToShoot &&
-                            Math.abs(leftRPM) >= TARGET_SHOOT_RPM -
-                                    RPM_TOLERANCE) {
-                        finalIntakeRight.setPower(F_Intake_Shoot);
-                        finalIntakeLeft.setPower(F_Intake_Shoot);
-                        intake1150.setPower(IntakeInward);
-                        hasSetFinalIntakePowerToShoot = true;
                     } else {
                         finalIntakeRight.setPower(F_Intake_Hold);
                         finalIntakeLeft.setPower(F_Intake_Hold);
@@ -316,6 +313,14 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                 }
                 break;
             case STATE_INTAKE_AND_SCORE_ROW_1:
+                if (shouldBeShooting) {
+                    spinUpFlywheelsHybrid(leftRPM);
+                }
+                else {
+                    leftFlywheel.setPower(0.025);
+                    rightFlywheel.setPower(-0.025);
+                }
+
                 if (!pathStarted) {
                     follower.setMaxPower(1);
                     follower.followPath(intakeAndScoreRow1Chain, true);
@@ -332,39 +337,37 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                     intake1150.setPower(IntakeInward);
                     finalIntakeRight.setPower(F_Intake_Backwards);
                     finalIntakeLeft.setPower(F_Intake_Backwards);
+                    shouldBeShooting = false;
                 } else if (currentSegment == 2) {
                     // intakes off, flywheels on
                     intake1150.setPower(0);
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
-                    spinUpFlywheelsHybrid(leftRPM);
+                    shouldBeShooting = true;
                 }
 
                 // shoot artifacts
                 if (!follower.isBusy()) {
-                    if (!hasResetShootingTimer) {
-                        stateTimer.resetTimer();
-                        hasResetShootingTimer = true;
+                    shouldBeShooting = true;
+
+                    if (!resetCustomTimer) {
+                        customTimer.reset();
+                        resetCustomTimer = true;
                     }
 
-                    if (stateTimer.getElapsedTimeSeconds() >= 3.2) {
+                    if (customTimer.milliseconds() >= 5000) { // times up, move to next pathchain
                         finalIntakeRight.setPower(F_Intake_Hold);
                         finalIntakeLeft.setPower(F_Intake_Hold);
                         intake1150.setPower(0);
+                        // timer
+                        resetCustomTimer = false;
                         // stop flywheels basically
-                        leftFlywheel.setPower(0.025);
-                        rightFlywheel.setPower(-0.025);
+                        shouldBeShooting = false;
                         transition(State.STATE_INTAKE_AND_SCORE_ROW_2); // ------------------ TRANSITION STATES
-                    } else if (hasSetFinalIntakePowerToShoot) {
+                    } else if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
                         finalIntakeRight.setPower(F_Intake_Shoot);
                         finalIntakeLeft.setPower(F_Intake_Shoot);
                         intake1150.setPower(IntakeInward);
-                    } else if (!hasSetFinalIntakePowerToShoot &&
-                            Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
-                        finalIntakeRight.setPower(F_Intake_Shoot);
-                        finalIntakeLeft.setPower(F_Intake_Shoot);
-                        intake1150.setPower(IntakeInward);
-                        hasSetFinalIntakePowerToShoot = true;
                     } else {
                         finalIntakeRight.setPower(F_Intake_Hold);
                         finalIntakeLeft.setPower(F_Intake_Hold);
@@ -374,6 +377,14 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                 break;
 
             case STATE_INTAKE_AND_SCORE_ROW_2:
+                if (shouldBeShooting) {
+                    spinUpFlywheelsHybrid(leftRPM);
+                }
+                else {
+                    leftFlywheel.setPower(0.025);
+                    rightFlywheel.setPower(-0.025);
+                }
+
                 if (!pathStarted) {
                     follower.setMaxPower(1);
                     follower.followPath(intakeAndScoreRow2Chain, true);
@@ -394,46 +405,39 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                     intake1150.setPower(0);
                     finalIntakeRight.setPower(F_Intake_Hold);
                     finalIntakeLeft.setPower(F_Intake_Hold);
-                    spinUpFlywheelsHybrid(leftRPM);
+                    shouldBeShooting = true;
                 } else if (currentSegment == 4) {
                     intake1150.setPower(0);
-                    leftFlywheel.setPower(0);
-                    rightFlywheel.setPower(0);
+                    shouldBeShooting = false;
                 }
 
-                // Note: Since path 4 leads away immediately to park, you
-                // should verify if your robot stops to score here!
+
                 if (!follower.isBusy() && currentSegment == 3) {
-                    if (!hasResetShootingTimer) {
-                        stateTimer.resetTimer();
-                        hasResetShootingTimer = true;
+                    shouldBeShooting = true;
+
+                    if (!resetCustomTimer) {
+                        customTimer.reset();
+                        resetCustomTimer = true;
                     }
 
-                    if (stateTimer.getElapsedTimeSeconds() >= 3.2) {
+                    if (customTimer.milliseconds() >= 5000) {
                         finalIntakeRight.setPower(F_Intake_Hold);
                         finalIntakeLeft.setPower(F_Intake_Hold);
                         intake1150.setPower(0);
-                        leftFlywheel.setPower(0.025);
-                        rightFlywheel.setPower(-0.025);
+                        // timer
+                        resetCustomTimer = false;
+                        // stop flywheels basically
+                        shouldBeShooting = false;
                         transition(State.STATE_FINISHED);
-                    } else if (hasSetFinalIntakePowerToShoot) {
+                    } else if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
                         finalIntakeRight.setPower(F_Intake_Shoot);
                         finalIntakeLeft.setPower(F_Intake_Shoot);
                         intake1150.setPower(IntakeInward);
-                    } else if (!hasSetFinalIntakePowerToShoot &&
-                            Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
-                        finalIntakeRight.setPower(F_Intake_Shoot);
-                        finalIntakeLeft.setPower(F_Intake_Shoot);
-                        intake1150.setPower(IntakeInward);
-                        hasSetFinalIntakePowerToShoot = true;
                     } else {
                         finalIntakeRight.setPower(F_Intake_Hold);
                         finalIntakeLeft.setPower(F_Intake_Hold);
                         intake1150.setPower(0);
                     }
-                }
-                else if (!follower.isBusy() && currentSegment == 4) {
-                    transition(State.STATE_FINISHED);
                 }
                 break;
 
@@ -444,35 +448,18 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                 intake1150.setPower(0);
                 finalIntakeLeft.setPower(F_Intake_Hold);
                 finalIntakeRight.setPower(F_Intake_Hold);
+
+                if (!follower.isBusy()) {
+                    requestOpModeStop();
+                }
+
                 break;
         }
     }
 
-
-//    /* ================= RPM CALC ================= */
-//    private double getFlywheelRPM(DcMotor motor) {
-//
-//        double currentTime = stateTimer.getElapsedTimeSeconds();
-//        int currentPosition = motor.getCurrentPosition();
-//
-//        double deltaTime = currentTime - lastFlywheelTime;
-//        int deltaTicks = currentPosition - lastFlywheelPosition;
-//
-//        if (deltaTime <= 0) return 0;
-//
-//        double rpm = ((deltaTicks / TICKS_PER_REV) / deltaTime) * 60.0;
-//
-//        lastFlywheelTime = currentTime;
-//        lastFlywheelPosition = currentPosition;
-//
-//        return rpm;
-//    }
-
     /* ================= HELPERS ================= */
     private void transition(State next) {
         pathStarted = false;
-        hasSetFinalIntakePowerToShoot = false;
-        hasResetShootingTimer = false;
         state = next;
         stateTimer.resetTimer();
     }
