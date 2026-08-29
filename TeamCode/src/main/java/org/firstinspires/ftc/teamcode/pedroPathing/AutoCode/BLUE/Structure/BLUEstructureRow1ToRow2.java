@@ -19,6 +19,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
 
     private boolean pathStarted = false;
     private boolean hasResetShootingTimer = false;
+    private boolean drivingToEnd = false; // true once we've fired the final pathDriveToEnd leg in ROW_2
 
     /* ================= HARDWARE ================= */
     private DcMotorEx leftFlywheel;
@@ -43,7 +44,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     private double SHOOT_RPM = 2500;
     private double TARGET_SHOOT_RPM = 2500;
     private static final double TICKS_PER_REV = 28.0;
-//    private final double shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0; commented out because not being used
+    //    private final double shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0; commented out because not being used
     //    private static final double TARGET_RPM = 2000.0; commented out because not being used
     private static final double RPM_TOLERANCE = 180;
     private int IntakeInward = -1;
@@ -131,7 +132,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
         rightFlywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         PIDFCoefficients shooterPIDF =
-                new PIDFCoefficients(0.35, 0.0, 0.002, 14);
+                new PIDFCoefficients(0.5, 0.0, 0.005, 14);
 
 
         leftFlywheel.setPIDFCoefficients(
@@ -176,7 +177,12 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
 
                 .addPath(new BezierLine(posePreparationPositionToMoveToShootPos, poseShootRow2))
                 .setLinearHeadingInterpolation(posePreparationPositionToMoveToShootPos.getHeading(), poseShootRow2.getHeading())
+                .build();
+        // separate chain so !follower.isBusy() reliably fires on arrival at
+        // poseShootRow2 (a chain's isBusy() only clears once ALL its legs are
+        // done, so poseEnd can't be part of the same chain we shoot from)
 
+        pathDriveToEnd = follower.pathBuilder()
                 .addPath(new BezierLine(poseShootRow2, poseEnd))
                 .setLinearHeadingInterpolation(poseShootRow2.getHeading(), poseEnd.getHeading())
                 .build();
@@ -310,6 +316,11 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                         finalIntakeLeft.setPower(F_Intake_Hold);
                         intake1150.setPower(0);
                     }
+                } else {
+                    // follower briefly went busy again (correction/overshoot) -
+                    // un-arm the timer so it can't count stale background time
+                    // toward the 5s shoot window once we finally settle.
+                    resetCustomTimer = false;
                 }
                 break;
             case STATE_INTAKE_AND_SCORE_ROW_1:
@@ -373,6 +384,10 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                         finalIntakeLeft.setPower(F_Intake_Hold);
                         intake1150.setPower(0);
                     }
+                } else {
+                    // same flicker guard as PRELOAD - re-arm the timer whenever
+                    // the follower is still busy so stale time can't sneak in.
+                    resetCustomTimer = false;
                 }
                 break;
 
@@ -396,47 +411,59 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                 // posePreparationPositionToMoveToShootPos
                 // Path 3: posePreparationPositionToMoveToShootPos ->
                 // poseShootRow2
-                // Path 4: poseShootRow2 -> poseEnd
-                if (currentSegment == 0 || currentSegment == 1) {
-                    intake1150.setPower(IntakeInward);
-                    finalIntakeRight.setPower(F_Intake_Backwards);
-                    finalIntakeLeft.setPower(F_Intake_Backwards);
-                } else if (currentSegment == 2 || currentSegment == 3) {
-                    intake1150.setPower(0);
-                    finalIntakeRight.setPower(F_Intake_Hold);
-                    finalIntakeLeft.setPower(F_Intake_Hold);
-                    shouldBeShooting = true;
-                } else if (currentSegment == 4) {
-                    intake1150.setPower(0);
-                    shouldBeShooting = false;
-                }
-
-
-                if (!follower.isBusy() && currentSegment == 3) {
-                    shouldBeShooting = true;
-
-                    if (!resetCustomTimer) {
-                        customTimer.reset();
-                        resetCustomTimer = true;
+                // (poseShootRow2 -> poseEnd is now its own chain, pathDriveToEnd,
+                //  followed only after we're done shooting - see below)
+                if (!drivingToEnd) {
+                    if (currentSegment == 0 || currentSegment == 1) {
+                        intake1150.setPower(IntakeInward);
+                        finalIntakeRight.setPower(F_Intake_Backwards);
+                        finalIntakeLeft.setPower(F_Intake_Backwards);
+                    } else if (currentSegment == 2 || currentSegment == 3) {
+                        intake1150.setPower(0);
+                        finalIntakeRight.setPower(F_Intake_Hold);
+                        finalIntakeLeft.setPower(F_Intake_Hold);
+                        shouldBeShooting = true;
                     }
 
-                    if (customTimer.milliseconds() >= 5000) {
-                        finalIntakeRight.setPower(F_Intake_Hold);
-                        finalIntakeLeft.setPower(F_Intake_Hold);
-                        intake1150.setPower(0);
-                        // timer
-                        resetCustomTimer = false;
-                        // stop flywheels basically
-                        shouldBeShooting = false;
-                        transition(State.STATE_FINISHED);
-                    } else if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
-                        finalIntakeRight.setPower(F_Intake_Shoot);
-                        finalIntakeLeft.setPower(F_Intake_Shoot);
-                        intake1150.setPower(IntakeInward);
+                    // shoot artifacts - intakeAndScoreRow2Chain now ENDS at
+                    // poseShootRow2, so !follower.isBusy() correctly fires on arrival
+                    if (!follower.isBusy()) {
+                        shouldBeShooting = true;
+
+                        if (!resetCustomTimer) {
+                            customTimer.reset();
+                            resetCustomTimer = true;
+                        }
+
+                        if (customTimer.milliseconds() >= 5000) {
+                            finalIntakeRight.setPower(F_Intake_Hold);
+                            finalIntakeLeft.setPower(F_Intake_Hold);
+                            intake1150.setPower(0);
+                            // timer
+                            resetCustomTimer = false;
+                            // stop flywheels basically
+                            shouldBeShooting = false;
+                            // done shooting row 2 - now drive from poseShootRow2 to poseEnd
+                            follower.followPath(pathDriveToEnd, true);
+                            drivingToEnd = true;
+                        } else if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
+                            finalIntakeRight.setPower(F_Intake_Shoot);
+                            finalIntakeLeft.setPower(F_Intake_Shoot);
+                            intake1150.setPower(IntakeInward);
+                        } else {
+                            finalIntakeRight.setPower(F_Intake_Hold);
+                            finalIntakeLeft.setPower(F_Intake_Hold);
+                            intake1150.setPower(0);
+                        }
                     } else {
-                        finalIntakeRight.setPower(F_Intake_Hold);
-                        finalIntakeLeft.setPower(F_Intake_Hold);
-                        intake1150.setPower(0);
+                        // same flicker guard as PRELOAD/ROW_1
+                        resetCustomTimer = false;
+                    }
+                } else {
+                    // driving the final leg to poseEnd - nothing left to intake/shoot
+                    intake1150.setPower(0);
+                    if (!follower.isBusy()) {
+                        transition(State.STATE_FINISHED);
                     }
                 }
                 break;
@@ -448,11 +475,6 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                 intake1150.setPower(0);
                 finalIntakeLeft.setPower(F_Intake_Hold);
                 finalIntakeRight.setPower(F_Intake_Hold);
-
-                if (!follower.isBusy()) {
-                    requestOpModeStop();
-                }
-
                 break;
         }
     }
@@ -460,6 +482,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     /* ================= HELPERS ================= */
     private void transition(State next) {
         pathStarted = false;
+        drivingToEnd = false;
         state = next;
         stateTimer.resetTimer();
     }
