@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -20,6 +22,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     private boolean pathStarted = false;
     private boolean hasResetShootingTimer = false;
     private boolean drivingToEnd = false; // true once we've fired the final pathDriveToEnd leg in ROW_2
+    private TelemetryManager telemetryM;
 
     /* ================= HARDWARE ================= */
     private DcMotorEx leftFlywheel;
@@ -47,6 +50,11 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     //    private final double shootTicksPerSec = SHOOT_RPM * TICKS_PER_REV / 60.0; commented out because not being used
     //    private static final double TARGET_RPM = 2000.0; commented out because not being used
     private static final double RPM_TOLERANCE = 180;
+
+    // hysteresis: exit tolerance is wider than entry so noise near the entry
+    // line can't flip readyToShoot on/off every loop
+    private static final double RPM_EXIT_TOLERANCE = 280;
+    private boolean readyToShoot = false;
     private int IntakeInward = -1;
     private int IntakeOutward = 1;
     private int IntakeNoPower = 0;
@@ -79,11 +87,11 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     /* ================= POSES ================= */
     private final Pose poseStart = new Pose(24.746955345060893, 128.60622462787552, Math.toRadians(143));
     private final Pose poseShootPreload = new Pose(55, 100, Math.toRadians(142)); // increase x lower y to move farther from goal
-    private final Pose poseToCollect1 = new Pose(44.4, 85.5, Math.toRadians(180));
-    private final Pose poseCollectsRow1 = new Pose(25, 81.5, Math.toRadians(180)); // kept ramming into ramp so changed x from 15 --> 25
+    private final Pose poseToCollect1 = new Pose(44.4, 81, Math.toRadians(180));
+    private final Pose poseCollectsRow1 = new Pose(24.2, 84, Math.toRadians(180)); // kept ramming into ramp so changed x from 15 --> 25
     private final Pose poseShootRow1 = new Pose(55, 100, Math.toRadians(140)); // increase x lower y to move farther from goal
-    private final Pose poseToCollect2 = new Pose(44.4, 62, Math.toRadians(180));
-    private final Pose poseCollectsRow2 = new Pose(20, 57, Math.toRadians(180));
+    private final Pose poseToCollect2 = new Pose(48, 62, Math.toRadians(180));
+    private final Pose poseCollectsRow2 = new Pose(18, 51, Math.toRadians(180));
     private final Pose posePreparationPositionToMoveToShootPos = new Pose(44.4, 56, Math.toRadians(180));
     private final Pose poseShootRow2 = new Pose(55, 100, Math.toRadians(142)); // increase x lower y to move farther from goal
     private final Pose poseEnd = new Pose(24, 68, Math.toRadians(180));
@@ -102,6 +110,8 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     /* ================= INIT ================= */
     @Override
     public void init() {
+
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(poseStart);
@@ -252,6 +262,22 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
         }
     }
 
+    /**
+     * Hysteresis check for "is the flywheel up to shooting speed". Enters the
+     * ready state once currentAbsRPM crosses TARGET_SHOOT_RPM - RPM_TOLERANCE,
+     * but only leaves it once RPM drops below TARGET_SHOOT_RPM - RPM_EXIT_TOLERANCE
+     * (a wider band). This stops small noise near the entry line from flickering
+     * the intake on/off every loop.
+     */
+    private boolean updateReadyToShoot(double currentAbsRPM) {
+        if (!readyToShoot && currentAbsRPM >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
+            readyToShoot = true;
+        } else if (readyToShoot && currentAbsRPM < TARGET_SHOOT_RPM - RPM_EXIT_TOLERANCE) {
+            readyToShoot = false;
+        }
+        return readyToShoot;
+    }
+
     /* ================= LOOP ================= */
     @Override
     public void loop() {
@@ -265,12 +291,20 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
         // telemetry -=-=-=-=-=-=-=-=-
         double leftRPM = leftFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
         // double rightRPM = rightFlywheel.getVelocity() * 60.0 / TICKS_PER_REV;
-        telemetry.addData("Current Flywheel RPM:", "%.1f", Math.abs(leftRPM));
+//        telemetry.addData("Current Flywheel RPM:", "%.1f", Math.abs(leftRPM));
         // telemetry.addData("Flywheel RPM Right:", "%.1f", rightRPM);
-        telemetry.addData("Target RPM", TARGET_SHOOT_RPM);
+//        telemetry.addData("Target RPM", TARGET_SHOOT_RPM);
         // telemetry.addData("timer: left", timerLeft.milliseconds());
         // telemetry.addData("timer right:", timerRight.milliseconds());
-        telemetry.update();
+//        telemetry.update();
+
+        org.firstinspires.ftc.robotcore.external.Telemetry unused; // (no-op, just noting import isn't needed for this)
+        android.util.Log.d("RPM_LOG", System.currentTimeMillis() + "," + leftRPM);
+
+        telemetryM.addData("Current Flywheel RPM", Math.abs(leftRPM));
+        telemetryM.addData("Target RPM", TARGET_SHOOT_RPM);
+        telemetryM.addData("Threshold RPM", 2200);
+        telemetryM.update(telemetry);
         // telemetry -=-=-=-=-=-=-=-=-
 
 
@@ -298,7 +332,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                         resetCustomTimer = true;
                     }
 
-                    if (customTimer.milliseconds() >= 5000) {
+                    if (customTimer.milliseconds() >= 3000) {
                         finalIntakeRight.setPower(F_Intake_Hold);
                         finalIntakeLeft.setPower(F_Intake_Hold);
                         intake1150.setPower(0);
@@ -307,7 +341,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                         // stop flywheels basically
                         shouldBeShooting = false;
                         transition(State.STATE_INTAKE_AND_SCORE_ROW_1); // ------------------ TRANSITION STATES
-                    } else if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
+                    } else if (updateReadyToShoot(Math.abs(leftRPM))) {
                         finalIntakeRight.setPower(F_Intake_Shoot);
                         finalIntakeLeft.setPower(F_Intake_Shoot);
                         intake1150.setPower(IntakeInward);
@@ -350,10 +384,10 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                     finalIntakeLeft.setPower(F_Intake_Backwards);
                     shouldBeShooting = false;
                 } else if (currentSegment == 2) {
-                    // intakes off, flywheels on
-                    intake1150.setPower(0);
-                    finalIntakeRight.setPower(F_Intake_Hold);
-                    finalIntakeLeft.setPower(F_Intake_Hold);
+                    // intakes on, flywheels on
+                    intake1150.setPower(IntakeInward);
+                    finalIntakeRight.setPower(F_Intake_Backwards);
+                    finalIntakeLeft.setPower(F_Intake_Backwards);
                     shouldBeShooting = true;
                 }
 
@@ -366,7 +400,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                         resetCustomTimer = true;
                     }
 
-                    if (customTimer.milliseconds() >= 5000) { // times up, move to next pathchain
+                    if (customTimer.milliseconds() >= 3000) { // times up, move to next pathchain
                         finalIntakeRight.setPower(F_Intake_Hold);
                         finalIntakeLeft.setPower(F_Intake_Hold);
                         intake1150.setPower(0);
@@ -375,7 +409,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                         // stop flywheels basically
                         shouldBeShooting = false;
                         transition(State.STATE_INTAKE_AND_SCORE_ROW_2); // ------------------ TRANSITION STATES
-                    } else if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
+                    } else if (updateReadyToShoot(Math.abs(leftRPM))) {
                         finalIntakeRight.setPower(F_Intake_Shoot);
                         finalIntakeLeft.setPower(F_Intake_Shoot);
                         intake1150.setPower(IntakeInward);
@@ -419,9 +453,9 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                         finalIntakeRight.setPower(F_Intake_Backwards);
                         finalIntakeLeft.setPower(F_Intake_Backwards);
                     } else if (currentSegment == 2 || currentSegment == 3) {
-                        intake1150.setPower(0);
-                        finalIntakeRight.setPower(F_Intake_Hold);
-                        finalIntakeLeft.setPower(F_Intake_Hold);
+                        intake1150.setPower(IntakeInward);
+                        finalIntakeRight.setPower(F_Intake_Backwards);
+                        finalIntakeLeft.setPower(F_Intake_Backwards);
                         shouldBeShooting = true;
                     }
 
@@ -435,7 +469,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                             resetCustomTimer = true;
                         }
 
-                        if (customTimer.milliseconds() >= 5000) {
+                        if (customTimer.milliseconds() >= 4000) {
                             finalIntakeRight.setPower(F_Intake_Hold);
                             finalIntakeLeft.setPower(F_Intake_Hold);
                             intake1150.setPower(0);
@@ -446,7 +480,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
                             // done shooting row 2 - now drive from poseShootRow2 to poseEnd
                             follower.followPath(pathDriveToEnd, true);
                             drivingToEnd = true;
-                        } else if (Math.abs(leftRPM) >= TARGET_SHOOT_RPM - RPM_TOLERANCE) {
+                        } else if (updateReadyToShoot(Math.abs(leftRPM))) {
                             finalIntakeRight.setPower(F_Intake_Shoot);
                             finalIntakeLeft.setPower(F_Intake_Shoot);
                             intake1150.setPower(IntakeInward);
@@ -483,6 +517,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
     private void transition(State next) {
         pathStarted = false;
         drivingToEnd = false;
+        readyToShoot = false;
         state = next;
         stateTimer.resetTimer();
     }
