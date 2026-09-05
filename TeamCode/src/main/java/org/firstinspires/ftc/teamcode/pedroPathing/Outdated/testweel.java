@@ -1,0 +1,203 @@
+//package org.firstinspires.ftc.teamcode.pedroPathing.Outdated;
+//
+//import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+//import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+//import com.qualcomm.robotcore.hardware.DcMotor;
+//import com.qualcomm.robotcore.hardware.Servo;
+//
+//@TeleOp(name = "TEST WHEEL WHEEL WHEEL WHELL HWELL HEWL (java to tauri)")
+//public class testweel extends LinearOpMode {
+//
+//    private Servo FinalIntakeLeftDS;
+//    private Servo finalIntakeServo;
+//    private DcMotor frontLeftWheelDS;
+//    private DcMotor backLeftWheelDS;
+//    private DcMotor frontRightWheelDS;
+//    private DcMotor backRightWheelDS;
+//    private DcMotor _1150RPMintake;
+//    private DcMotor _6000RPMmotor;
+//    private DcMotor _6000RPMmotorflywheelright;
+//
+//    /**
+//     * idk man figure it out
+//     */
+//    @Override
+//    public void runOpMode() {
+//        float frontLeftPower;
+//        float LY;
+//        float backLeftPower;
+//        float frontRightPower;
+//        float backRightPower;
+//
+//        FinalIntakeLeftDS = hardwareMap.get(Servo.class, "FinalIntakeLeftDS");
+//        finalIntakeServo = hardwareMap.get(Servo.class, "finalIntakeServo");
+//        backLeftWheelDS = hardwareMap.get(DcMotor.class, "backLeftWheelDS");
+//        _1150RPMintake = hardwareMap.get(DcMotor.class, "1150 RPM intake");
+//        _6000RPMmotor = hardwareMap.get(DcMotor.class, "6000 RPM motor");
+//        _6000RPMmotorflywheelright = hardwareMap.get(DcMotor.class, "6000 RPM motor flywheel right");
+//
+//        // Put initialization blocks here.
+//        FinalIntakeLeftDS.setPosition(20);
+//        finalIntakeServo.setDirection(Servo.Direction.REVERSE);
+//        finalIntakeServo.setPosition(20);
+//        waitForStart();
+//        if (opModeIsActive()) {
+//            // Put run blocks here.
+//            while (opModeIsActive()) {
+//                // Put loop blocks here.
+//                if (gamepad1.left_bumper) {
+//                    FinalIntakeLeftDS.setPosition(0);
+//                } else {
+//                    FinalIntakeLeftDS.setPosition(20);
+//                }
+//                if (gamepad1.left_bumper) {
+//                    finalIntakeServo.setPosition(0);
+//                } else {
+//                    finalIntakeServo.setPosition(20);
+//                }
+//                LY = gamepad1.left_stick_y;
+//                telemetry.addData("Left Stick Y", gamepad1.left_stick_y);
+//                telemetry.addData("Left Stick X", gamepad1.left_stick_y);
+//                // Front Left Wheel
+//                // Forward + Backward
+//                frontLeftPower = gamepad1.left_stick_y;
+//                // Front Left Wheel
+//                // Forward + Backward
+//                backLeftPower = gamepad1.left_stick_y;
+//                // Front Left Wheel
+//                // Forward + Backward
+//                frontRightPower = -gamepad1.left_stick_y;
+//                // Front Left Wheel
+//                // Forward + Backward
+//                backRightPower = -gamepad1.left_stick_y;
+//                frontLeftWheelDS.setPower(frontLeftPower);
+//                telemetry.addData("key", frontLeftPower);
+//                telemetry.addData("key", frontLeftWheelDS.getPower());
+//                backLeftWheelDS.setPower(backLeftPower);
+//                telemetry.addData("key", backLeftPower);
+//                telemetry.addData("key", backLeftWheelDS.getPower());
+//                frontRightWheelDS.setPower(frontRightPower);
+//                telemetry.addData("key", frontRightPower);
+//                telemetry.addData("key", frontRightWheelDS.getPower());
+//                backRightWheelDS.setPower(backRightPower);
+//                telemetry.addData("key", backRightPower);
+//                telemetry.addData("key", backRightWheelDS.getPower());
+//                // Left + Right
+//                // Left + Right
+//                // Left + Right
+//                // Left + Right
+//                // Left + Right
+//                // Left + Right
+//                // Left + Right
+//                // Left + Right
+//                // Left + Right
+//                // Left + Right
+//                // Left + Right
+//                // Left + Right
+//                // Left + Right
+//                // Front Left Wheel
+//                // Forward + Backward
+//                frontLeftPower = gamepad1.left_stick_x;
+//                // Front Left Wheel
+//                // Forward + Backward
+//                backLeftPower = -gamepad1.left_stick_x;
+//                // Front Left Wheel
+//                // Forward + Backward
+//                frontRightPower = -gamepad1.left_stick_x;
+//                // Front Left Wheel
+//                // Forward + Backward
+//                backRightPower = gamepad1.left_stick_x;
+//                frontLeftWheelDS.setPower(frontLeftPower);
+//                telemetry.addData("key", frontLeftPower);
+//                telemetry.addData("key", frontLeftWheelDS.getPower());
+//                backLeftWheelDS.setPower(backLeftPower);
+//                telemetry.addData("key", backLeftPower);
+//                telemetry.addData("key", backLeftWheelDS.getPower());
+//                frontRightWheelDS.setPower(frontRightPower);
+//                telemetry.addData("key", frontRightPower);
+//                telemetry.addData("key", frontRightWheelDS.getPower());
+//                backRightWheelDS.setPower(backRightPower);
+//                telemetry.addData("key", backRightPower);
+//                telemetry.addData("key", backRightWheelDS.getPower());
+//                // Turning
+//                // Turning
+//                // Turning
+//                // Turning
+//                // Turning
+//                // Turning
+//                // Turning
+//                // Turning
+//                // Turning
+//                // Turning
+//                // Front Left Wheel
+//                // Forward + Backward
+//                frontLeftPower = -gamepad1.right_stick_x;
+//                // Front Left Wheel
+//                // Forward + Backward
+//                backLeftPower = -gamepad1.right_stick_x;
+//                // Front Left Wheel
+//                // Forward + Backward
+//                frontRightPower = -gamepad1.right_stick_x;
+//                // Front Left Wheel
+//                // Forward + Backward
+//                backRightPower = -gamepad1.right_stick_x;
+//                frontLeftWheelDS.setPower(frontLeftPower);
+//                telemetry.addData("key", frontLeftPower);
+//                telemetry.addData("key", frontLeftWheelDS.getPower());
+//                backLeftWheelDS.setPower(backLeftPower);
+//                telemetry.addData("key", backLeftPower);
+//                telemetry.addData("key", backLeftWheelDS.getPower());
+//                frontRightWheelDS.setPower(frontRightPower);
+//                telemetry.addData("key", frontRightPower);
+//                telemetry.addData("key", frontRightWheelDS.getPower());
+//                backRightWheelDS.setPower(backRightPower);
+//                telemetry.addData("key", backRightPower);
+//                telemetry.addData("key", backRightWheelDS.getPower());
+//                if (gamepad1.a) {
+//                    frontLeftPower = 1;
+//                    backLeftPower = 1;
+//                    frontRightPower = 1;
+//                    backRightPower = 1;
+//                    frontLeftWheelDS.setPower(frontLeftPower);
+//                    backLeftWheelDS.setPower(backLeftPower);
+//                    frontRightWheelDS.setPower(frontRightPower);
+//                    backRightWheelDS.setPower(backRightPower);
+//                }
+//                if (gamepad1.b) {
+//                    frontLeftPower = 1;
+//                    backLeftPower = 1;
+//                    frontRightPower = 1;
+//                    backRightPower = 1;
+//                    frontLeftWheelDS.setPower(-frontLeftPower);
+//                    backLeftWheelDS.setPower(-backLeftPower);
+//                    frontRightWheelDS.setPower(-frontRightPower);
+//                    backRightWheelDS.setPower(-backRightPower);
+//                }
+//                if (gamepad1.x) {
+//                    _1150RPMintake.setPower(-1);
+//                } else {
+//                    _1150RPMintake.setPower(0);
+//                }
+//                if (gamepad1.y) {
+//                    _6000RPMmotor.setPower(-0.635);
+//                    _6000RPMmotorflywheelright.setPower(0.635);
+//                } else {
+//                    _6000RPMmotor.setPower(0);
+//                    _6000RPMmotorflywheelright.setPower(0);
+//                }
+//                if (gamepad1.y) {
+//                    _6000RPMmotor.setPower(-0.635);
+//                    _6000RPMmotorflywheelright.setPower(0.635);
+//                } else {
+//                    _6000RPMmotor.setPower(0);
+//                    _6000RPMmotorflywheelright.setPower(0);
+//                }
+//                if (gamepad1.right_bumper) {
+//                    _6000RPMmotor.setPower(0.635);
+//                    _6000RPMmotorflywheelright.setPower(-0.635);
+//                }
+//                telemetry.update();
+//            }
+//        }
+//    }
+//}
