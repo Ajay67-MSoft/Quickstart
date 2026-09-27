@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 /*
  * This file includes a teleop (driver-controlled) file for the goBILDA® StarterBot Chassis/Intake for the
@@ -22,6 +24,8 @@ public class starterBotTeleop extends OpMode {
     private DcMotor leftDrive = null;
     private DcMotor rightDrive = null;
     private DcMotor intake = null;
+    private CRServo indexer = null;
+    private DcMotorEx flywheel = null;
 //    private CRServo leftIntakeServo = null;
 //    private CRServo rightIntakeServo = null;
 
@@ -47,8 +51,16 @@ public class starterBotTeleop extends OpMode {
         leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
         rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
+        indexer = hardwareMap.get(CRServo.class, "indexer");
+        flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
 //        leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
 //        rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
+
+        flywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        flywheel.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        flywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        flywheel.setVelocityPIDFCoefficients(0.5, 0.0, 0.005, 10);
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -137,8 +149,15 @@ public class starterBotTeleop extends OpMode {
          * allow us to avoid setting the same motors/servos power more than once per loop. That can
          * create erratic behavior.
          */
-        intakePower = gamepad1.right_trigger - gamepad1.left_trigger; // i did not understand why
-        // we would ever do this so i'll test it and then see if it actually does anything useful
+        if (gamepad1.right_bumper) { // changed from right trigger to right bumper
+            intakePower = 1;
+        }
+        else if (gamepad1.left_bumper) {
+            intakePower = -1;
+        }
+        else {
+            intakePower = 0;
+        }
 
         intake.setPower(intakePower);
 //        leftIntakeServo.setPower(intakePower);
@@ -146,9 +165,22 @@ public class starterBotTeleop extends OpMode {
 
         /*
          * Show motor powers on the Driver Station via telemetry.
+         * Commented out because it costs extra ms during loop
+         * times, though that probably won't matter much since
+         * we're not using this in competition any time soon.
          */
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-        telemetry.addData("Triggers", "left (%.2f, right (%.2f)",gamepad1.left_trigger, gamepad1.right_trigger);
+//        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+//        telemetry.addData("Triggers", "left (%.2f, right (%.2f)",gamepad1.left_trigger, gamepad1.right_trigger);
+
+        if (gamepad1.yWasPressed()) {
+            flywheel.setVelocity(2509); // (280 / 60.0 * 537.7) --> ~2509 ticks/s, ~90% of max
+            indexer.setPower(1);
+        }
+        else if (gamepad1.aWasPressed()) {
+            flywheel.setPower(0); // if we add inertia to the flywheel we can comment this out i think
+            indexer.setPower(0);
+        }
+
 
     }
 
