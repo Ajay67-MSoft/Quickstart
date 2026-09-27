@@ -26,8 +26,8 @@ public class starterBotTeleop extends OpMode {
     private DcMotor intake = null;
     private CRServo indexer = null;
     private DcMotorEx flywheel = null;
-//    private CRServo leftIntakeServo = null;
-//    private CRServo rightIntakeServo = null;
+    private CRServo leftIntakeServo = null;
+    private CRServo rightIntakeServo = null;
 
     // Set up a variable for each drive wheel to save power level for telemetry.
     double leftPower;
@@ -48,19 +48,21 @@ public class starterBotTeleop extends OpMode {
          * step.
          */
 
+        // the thing to the left of the = sign is what's used in this code
+        // the thing on the far right in "" is what's used in the DS
         leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
         rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         indexer = hardwareMap.get(CRServo.class, "indexer");
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
-//        leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
-//        rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
+        leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
+        rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
 
         flywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         flywheel.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         flywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        flywheel.setVelocityPIDFCoefficients(0.5, 0.0, 0.005, 10);
+        flywheel.setVelocityPIDFCoefficients(1, 0.02, 0.005, 12);
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -84,14 +86,14 @@ public class starterBotTeleop extends OpMode {
         /*
          * set Feeders to an initial value to initialize the servo controller
          */
-//        leftIntakeServo.setPower(0);
-//        rightIntakeServo.setPower(0);
+        leftIntakeServo.setPower(0);
+        rightIntakeServo.setPower(0);
 
         /*
          * Much like our drivetrain motors, we set the right intake servo to reverse so that both
          * servos work to pull elements into the intake.
          */
-//        rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
         /*
          * Tell the driver that initialization is complete.
@@ -149,6 +151,18 @@ public class starterBotTeleop extends OpMode {
          * allow us to avoid setting the same motors/servos power more than once per loop. That can
          * create erratic behavior.
          */
+
+        if (gamepad1.right_trigger_pressed) {
+            rightIntakeServo.setPower(1);
+        } else {
+            rightIntakeServo.setPower(0);
+        }
+        if (gamepad1.left_trigger_pressed) {
+            leftIntakeServo.setPower(1);
+        } else {
+            leftIntakeServo.setPower(0);
+        }
+
         if (gamepad1.right_bumper) { // changed from right trigger to right bumper
             intakePower = 1;
         }
@@ -173,7 +187,7 @@ public class starterBotTeleop extends OpMode {
 //        telemetry.addData("Triggers", "left (%.2f, right (%.2f)",gamepad1.left_trigger, gamepad1.right_trigger);
 
         if (gamepad1.yWasPressed()) {
-            flywheel.setVelocity(2509); // (280 / 60.0 * 537.7) --> ~2509 ticks/s, ~90% of max
+            flywheel.setVelocity(1400); // (3000 / 60.0 * 28) --> 1400 ticks/s, 50% of max
             indexer.setPower(1);
         }
         else if (gamepad1.aWasPressed()) {
@@ -181,6 +195,7 @@ public class starterBotTeleop extends OpMode {
             indexer.setPower(0);
         }
 
+        android.util.Log.d("RPM_LOG", System.currentTimeMillis() + "," + flywheel.getVelocity());
 
     }
 
