@@ -142,7 +142,7 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
         rightFlywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         PIDFCoefficients shooterPIDF =
-                new PIDFCoefficients(0.5, 0.0, 0.005, 14);
+                new PIDFCoefficients(0.5, 0.0, 0.005, 16);
 
 
         leftFlywheel.setPIDFCoefficients(
@@ -246,19 +246,19 @@ public class BLUEstructureRow1ToRow2 extends OpMode {
         }
      */
     private void spinUpFlywheelsHybrid(double currentLeftRPM) {
-        // Threshold calculation: 400 RPM below your shooting target
+        // Threshold calculation: 300 RPM below the shooting target
 //        double thresholdRPM = 2200;
 
-        if (Math.abs(currentLeftRPM) < 2200) {
+        if (Math.abs(currentLeftRPM) < 2400) {
             // 1. BANG-BANG
             // put max flywheel power lol
             leftFlywheel.setPower(-1.0);
             rightFlywheel.setPower(1.0);
         } else {
             // PIDF
-            // Speed is within 400 RPM: switch back to pidf
-            leftFlywheel.setVelocity(-1167); // 1633
-            rightFlywheel.setVelocity(1167); // 1633
+            // Speed is within x RPM: switch back to pidf
+            leftFlywheel.setVelocity(-1167); // 2500 rpm
+            rightFlywheel.setVelocity(1167); // 2500 rpm
         }
     }
 

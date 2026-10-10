@@ -228,11 +228,14 @@ once per loop. That can
         // Flywheel is driven every loop while shooterOn is true, so the
         // bang-bang -> PIDF handoff can actually react to current speed
         // instead of firing once on the button edge.
+        /*
         if (shooterOn) {
             spinUpFlywheelHybrid();
         } else {
-            flywheel.setPower(0); // if we add inertia to the flywheel we can comment this out i think
+            flywheel.setPower(0.4); // if we add inertia to the flywheel we can comment this out i think
         }
+*/
+        spinUpFlywheelHybrid();
 
         double currentRPM = flywheel.getVelocity() * 60.0 / TICKS_PER_REV;
         telemetry.addData("Current Flywheel RPM", Math.abs(currentRPM));
